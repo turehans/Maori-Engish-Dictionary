@@ -24,6 +24,16 @@ def create_connection(db_file):
 def render_homepage():
     return render_template('home.html')
 
+@app.route('/dictionary')
+def render_dictionary():
+    con = create_connection(DATABASE)
+    query = "SELECT maori, english, definition, level FROM Vocab_List"
+    cur = con.cursor()
+    cur.execute(query)
+    product_list = cur.fetchall()
+    print(product_list)
+    con.close()
+    return render_template('dictionary,html')
 
 
 
