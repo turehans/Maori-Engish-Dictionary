@@ -5,7 +5,29 @@
 {% block heading %}Maōri - English Dictionary{% endblock %}
 
 {% block main %}
+<table>
+  <thead>
+  
+    <tr>
+      <td>Maori</td>
+      <td>English</td>
+      <td>Definition</td>
+      <td>Level</td>
+    </tr>
+  </thead>
+  {% for word in words %}
+  
+  <tr>
+    <td>{{word[0]}}</td>
+    <td>{{word[1]}}</td>
+    <td>{{word[2]}}</td>
+    <td>{{word[3]}}</td>
+  </tr>
 
+
+  {% endfor %}
+
+</table>
 
 
 

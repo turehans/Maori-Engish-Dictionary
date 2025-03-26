@@ -30,10 +30,10 @@ def render_dictionary():
     query = "SELECT maori, english, definition, level FROM Vocab_List"
     cur = con.cursor()
     cur.execute(query)
-    product_list = cur.fetchall()
-    print(product_list)
+    words_list = cur.fetchall()
+    print(words_list)
     con.close()
-    return render_template('dictionary,html')
+    return render_template('dictionary.html', words=words_list)
 
 
 
