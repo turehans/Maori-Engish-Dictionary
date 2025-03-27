@@ -23,7 +23,10 @@
 			<span></span>
 			<ul>
                 <li><a href="\">Home</a></li>
-                <li><a href="\dictionary">Dictionary</a></li>"
+                {% for category in categories %}
+                  <li><a href="\dictionary\{{category[0]}}">{{category[1]}}</a></li>
+                {% endfor %}  
+
 
 			</ul>
 		</nav>

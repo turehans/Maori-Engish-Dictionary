@@ -20,21 +20,34 @@ def create_connection(db_file):
         print(e)
     return None
 
+
+# parses a list into every webpage
+@app.context_processor
+def inject_list():
+    con = create_connection(DATABASE)
+    query = "SELECT * FROM Categories"
+    cur = con.cursor()
+    cur.execute(query)
+    category_list = cur.fetchall()
+    print(category_list)
+    con.close()
+    return dict(categories=category_list)
+
+
 @app.route('/')
 def render_homepage():
     return render_template('home.html')
 
-@app.route('/dictionary')
-def render_dictionary():
+@app.route('/dictionary/<cat_id>')
+def render_dictionary(cat_id):
     con = create_connection(DATABASE)
-    query = "SELECT maori, english, definition, level FROM Vocab_List"
+    query = "SELECT maori, english, definition, level FROM Vocab_List WHERE cat_id=?"
     cur = con.cursor()
-    cur.execute(query)
+    cur.execute(query, (cat_id,))
     words_list = cur.fetchall()
     print(words_list)
     con.close()
     return render_template('dictionary.html', words=words_list)
-
 
 
 
