@@ -20,6 +20,15 @@ def create_connection(db_file):
         print(e)
     return None
 
+def is_logged_in():
+    if session.get("email") is None:
+        print("Not logged in")
+        return False
+    else:
+        print("logged in")
+        return True
+
+
 
 # parses a list into every webpage
 @app.context_processor
@@ -36,7 +45,7 @@ def inject_list():
 
 @app.route('/')
 def render_homepage():
-    return render_template('home.html')
+    return render_template('home.html', logged_in=is_logged_in())
 
 @app.route('/dictionary/<cat_id>')
 def render_dictionary(cat_id):
@@ -47,7 +56,7 @@ def render_dictionary(cat_id):
     words_list = cur.fetchall()
     print(words_list)
     con.close()
-    return render_template('dictionary.html', words=words_list)
+    return render_template('dictionary.html', words=words_list, logged_in=is_logged_in())
 
 @app.route('/word/<word_id>')
 def render_word(word_id):
@@ -63,13 +72,13 @@ WHERE Vocab_List.id=?;
     word_info_list = cur.fetchone()
     print(f"Word info = {word_info_list}")
     con.close()
-    return render_template('word.html', word=word_info_list)
+    return render_template('word.html', word=word_info_list, logged_in=is_logged_in())
 
 
 @app.route('/signup', methods=['POST', 'GET'])
 def render_signup():
-    #if is_logged_in():
-    #    return redirect('/')
+    if is_logged_in():
+        return redirect('/')
     
     con = create_connection(DATABASE)
     cur = con.cursor()
@@ -126,7 +135,56 @@ def render_signup():
 
         return redirect("/login")
     
-    return render_template('signup.html', roles=role_list)
+    return render_template('signup.html', roles=role_list, logged_in=is_logged_in())
+
+
+
+
+@app.route('/login', methods=['POST', 'GET'])
+def render_login():
+    if is_logged_in():
+        return redirect('/')
+
+    if request.method == "POST":
+        email = request.form['email'].strip().lower()
+        password = request.form['password'].strip()
+
+        query = "SELECT id, username, fname, password FROM Users WHERE email = ?"
+        con = create_connection(DATABASE)
+        cur = con.cursor()
+        cur.execute(query, (email,))
+        user_data = cur.fetchone()
+        con.close
+
+        try:
+            user_id = user_data[0]
+            username = user_data[1]
+            first_name = user_data[2]
+            db_password = user_data[3]
+        except IndexError:
+            return redirect(r"/login?error=Invalid+username+or+password")
+
+        if not bcrypt.check_password_hash(db_password, password):
+            return redirect(r"/login?error=Invalid+username+or+password")
+
+        session['email'] = email
+        session['user_id'] = user_id
+        session['first_name'] = first_name
+        session['username'] = username
+        print(session)
+        return redirect('/')
+
+
+
+    return render_template('login.html', logged_in=is_logged_in())
+
+@app.route('/logout')
+def logout():
+    print(list(session.keys()))
+    [session.pop(key) for key in list(session.keys())]
+    print(list(session.keys()))
+    return redirect('/?message=See+You+Next+Time}')
+
 
 
 app.run(host='0.0.0.0', debug=True)

@@ -23,7 +23,12 @@
 			<span></span>
 			<ul>
                 <li><a href="\">Home</a></li>
+                {% if logged_in == True  %}
+                <li><a href="\logout">Logout</a></li>
+                {% else %}
                 <li><a href="\signup">Signup</a></li>
+                <li><a href="\login">Login</a></li>
+                {% endif %}
 
                 <li>_______________<br></li>
                 {% for category in categories %}
