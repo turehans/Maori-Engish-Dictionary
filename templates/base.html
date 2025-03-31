@@ -23,11 +23,15 @@
 			<span></span>
 			<ul>
                 <li><a href="\">Home</a></li>
-                {% if logged_in == True  %}
+                {% if logged_in == True %}
                 <li><a href="\logout">Logout</a></li>
                 {% else %}
                 <li><a href="\signup">Signup</a></li>
                 <li><a href="\login">Login</a></li>
+                {% endif %}
+
+                {% if teacher == True %}
+                <li><a href="\admin">Admin</a></li>
                 {% endif %}
 
                 <li>_______________<br></li>

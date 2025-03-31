@@ -40,7 +40,12 @@ def inject_list():
     category_list = cur.fetchall()
     print(category_list)
     con.close()
-    return dict(categories=category_list, logged_in=is_logged_in())
+    is_teacher = False
+    if session.get("role_id") == str(1):
+        print("User is a teacher")
+        is_teacher = True
+
+    return dict(categories=category_list, logged_in=is_logged_in(), teacher=is_teacher)
 
 
 @app.route('/')
@@ -149,7 +154,7 @@ def render_login():
         email = request.form['email'].strip().lower()
         password = request.form['password'].strip()
 
-        query = "SELECT id, username, fname, password FROM Users WHERE email = ?"
+        query = "SELECT id, username, fname, password, role_id FROM Users WHERE email = ?"
         con = create_connection(DATABASE)
         cur = con.cursor()
         cur.execute(query, (email,))
@@ -161,8 +166,9 @@ def render_login():
             username = user_data[1]
             first_name = user_data[2]
             db_password = user_data[3]
+            role_id = user_data[4]
         except IndexError:
-            return redirect(r"/login?error=Invalid+username+or+password")
+            return r1edirect(r"/login?error=Invalid+username+or+password")
 
         if not bcrypt.check_password_hash(db_password, password):
             return redirect(r"/login?error=Invalid+username+or+password")
@@ -171,6 +177,7 @@ def render_login():
         session['user_id'] = user_id
         session['first_name'] = first_name
         session['username'] = username
+        session['role_id'] = role_id
         print(session)
         return redirect('/')
 
@@ -186,5 +193,61 @@ def logout():
     return redirect('/?message=See+You+Next+Time}')
 
 
+@app.route('/admin')
+def render_admin():
+     if not is_logged_in():
+         return redirect('/?message=Need+To+Be+Logged+in')
+     con = create_connection(DATABASE)
+     query = "SELECT * FROM Categories"
+     cur = con.cursor()
+     cur.execute(query)
+     category_list = cur.fetchall()
+     con.close()
+     return render_template("admin.html", categories=category_list)
+ 
+ 
+@app.route('/add_category', methods=['POST'])
+def add_category():
+    if not is_logged_in():
+        return redirect('/?message=Need+To+Be+Logged+in')
+    if request.method == 'POST':
+        print(request.form)
+        cat_name = request.form.get('name').lower().strip()
+        print(cat_name)
+        con = create_connection(DATABASE)
+        query = "INSERT INTO Categories ('name') VALUES (?)"
+        cur = con.cursor()
+        cur.execute(query, (cat_name, ))
+        con.commit()
+        con.close()
+    return redirect('/admin')
+ 
+ 
+@app.route('/delete_category', methods=['POST'])
+def render_delete_category():
+    if not is_logged_in():
+        return redirect('/?message=Need+To+Be+Logged+in')
+    if request.method == 'POST':
+        print(request.form)
+        category = request.form.get('name').lower().strip()
+        print(f"The category info is {category}")
+        category = category.split(",")
+        cat_id = category[0]
+        cat_name = category[1]
+        return render_template("delete_confirm.html", id=cat_id, name=cat_name, type="category")
+    return redirect('/admin')
+
+@app.route('/confirm_category_delete/<cat_id>')
+def confirm_category_delete(cat_id):
+    if not is_logged_in():
+        return redirect('/?message=Need+To+Be+Logged+in')
+    
+    con = create_connection(DATABASE)
+    query = "DELETE FROM Categories WHERE id = ?"
+    cur = con.cursor()
+    cur.execute(query, (cat_id, ))
+    con.commit()
+    con.close()
+    return redirect('/admin')
 
 app.run(host='0.0.0.0', debug=True)
