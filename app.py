@@ -41,7 +41,7 @@ def render_homepage():
 @app.route('/dictionary/<cat_id>')
 def render_dictionary(cat_id):
     con = create_connection(DATABASE)
-    query = "SELECT maori, english, definition, level FROM Vocab_List WHERE cat_id=?"
+    query = "SELECT id, maori, english, definition, level FROM Vocab_List WHERE cat_id=?"
     cur = con.cursor()
     cur.execute(query, (cat_id,))
     words_list = cur.fetchall()
@@ -49,6 +49,21 @@ def render_dictionary(cat_id):
     con.close()
     return render_template('dictionary.html', words=words_list)
 
+@app.route('/word/<word_id>')
+def render_word(word_id):
+    con = create_connection(DATABASE)
+    query = """
+SELECT Vocab_List.*, Users.username AS author_name
+FROM Vocab_List
+JOIN Users ON Vocab_List.author_id = Users.id
+WHERE Vocab_List.id=?;
+"""
+    cur = con.cursor()
+    cur.execute(query, (word_id,))
+    word_info_list = cur.fetchone()
+    print(f"Word info = {word_info_list}")
+    con.close()
+    return render_template('word.html', word=word_info_list)
 
 
 app.run(host='0.0.0.0', debug=True)

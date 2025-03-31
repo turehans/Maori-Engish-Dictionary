@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Maōri Dictionary | {{word[1]}}{% endblock %}
+
+{% block heading %}Maōri - English Dictionary{% endblock %}
+
+{% block main %}
+<div>
+<h1>{{word[1]}}</h1>
+<h3>Maori for {{word[2]}}</h3>
+<br>
+<p>{{word[4]}}</p>
+<p>Date of Entry: {{word[5]}}</p>
+<p>Created by: {{word[9]}}</p>
+<p>Level: {{word[7]}}</p>
+<img src="/static/images/{{word[8]}}.jpg">
+
+</div>
+
+{% endblock %}
