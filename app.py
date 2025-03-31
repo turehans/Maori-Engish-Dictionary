@@ -66,4 +66,67 @@ WHERE Vocab_List.id=?;
     return render_template('word.html', word=word_info_list)
 
 
+@app.route('/signup', methods=['POST', 'GET'])
+def render_signup():
+    #if is_logged_in():
+    #    return redirect('/')
+    
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+        
+    query1 = "SELECT * FROM Role"
+    cur.execute(query1)
+    role_list = cur.fetchall()
+    print(role_list)
+    con.close()
+
+
+
+
+    if request.method == 'POST':
+        print(request.form)
+        fname = request.form.get('fname').title().strip()
+        lname = request.form.get('lname').title().strip()
+        email = request.form.get('email').lower().strip()
+        username = request.form.get('username').strip()
+        password = request.form.get('password').strip()
+        password2 = request.form.get('password2').strip()
+        role_id = request.form.get('role').lower().strip()
+        
+        if password != password2:
+            return redirect(r"\signup?error=Passwords+do+not+match")
+        
+        if len(password) < 8: 
+            return redirect(r"\signup?error=Password+is+too+short")
+        
+
+        hashed_password = bcrypt.generate_password_hash(password)
+
+        con = create_connection(DATABASE)
+        cur = con.cursor()
+        
+        query1 = "SELECT * FROM Role"
+        cur.execute(query1)
+        role_list = cur.fetchall()
+        print(role_list)
+
+
+
+        query2 = "INSERT INTO Users (username, email, password, fname, lname, role_id) VALUES (?, ?, ?, ?, ?, ?)"
+
+        try:
+            cur.execute(query2, (username, email, hashed_password, fname, lname, role_id))
+
+        except sqlite3.IntegrityError:
+            con.close()
+            return redirect(r'\signup?error=Email+already+in+use')
+        
+        con.commit()
+        con.close()
+
+        return redirect("/login")
+    
+    return render_template('signup.html', roles=role_list)
+
+
 app.run(host='0.0.0.0', debug=True)

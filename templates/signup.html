@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+ 
+ {% block title %}signup{% endblock %}
+ 
+ {% block pageheading %}Sign Up{% endblock %}
+ 
+ {% block main %}
+ <form class="myForm" method="post">
+     
+ 
+     <div class="form-group">
+         <div class="form-label"><label for="email">Email:</label></div>
+         <div class="form-element"><input type="email" name="email" id="email" required></div>
+     </div>
+ 
+    <div class="form-group">
+         <div class="form-label"><label for="username">Username:</label></div>
+         <div class="form-element"><input type="username" name="username" id="username" required></div>
+     </div>
+ 
+
+
+     <div class="form-group">
+         <div class="form-label"><label for="fname">First Name:</label></div>
+         <div class="form-element"><input type="text" name="fname" id="fname" required></div>
+     </div>
+ 
+     <div class="form-group">
+         <div class="form-label"><label for="lname">Last Name:</label></div>
+         <div class="form-element"><input type="text" name="lname" id="lname" required></div>
+     </div>
+ 
+     <div class="form-group">
+         <div class="form-label"><label for="password">Password:</label></div>
+         <div class="form-element"><input type="password" name="password" id="password" required></div>
+     </div>
+ 
+     <div class="form-group">
+         <div class="form-label"><label for="password2">Password (again):</label></div>
+         <div class="form-element"><input type="password" name="password2" id="password2" required></div>
+     </div>
+      
+
+      <select id="role" name="role">
+        {% for role in roles %}
+        <option value="{{role[0]}}" >{{role[1]}}</option>
+        {% endfor %}
+      </select>
+
+
+     <div class="form-group">
+         <div class="form-label"> </div>
+         <div class="form-element"><input type="reset"></div>
+     </div>
+ 
+     <div class="form-group">
+         <div class="form-label"> </div>
+         <div class="form-element"><input type="submit"></div>
+     </div>
+ </form>
+ {% endblock %}
