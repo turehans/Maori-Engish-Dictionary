@@ -40,12 +40,12 @@ def inject_list():
     category_list = cur.fetchall()
     print(category_list)
     con.close()
-    return dict(categories=category_list)
+    return dict(categories=category_list, logged_in=is_logged_in())
 
 
 @app.route('/')
 def render_homepage():
-    return render_template('home.html', logged_in=is_logged_in())
+    return render_template('home.html')
 
 @app.route('/dictionary/<cat_id>')
 def render_dictionary(cat_id):
@@ -56,7 +56,7 @@ def render_dictionary(cat_id):
     words_list = cur.fetchall()
     print(words_list)
     con.close()
-    return render_template('dictionary.html', words=words_list, logged_in=is_logged_in())
+    return render_template('dictionary.html', words=words_list)
 
 @app.route('/word/<word_id>')
 def render_word(word_id):
@@ -72,7 +72,7 @@ WHERE Vocab_List.id=?;
     word_info_list = cur.fetchone()
     print(f"Word info = {word_info_list}")
     con.close()
-    return render_template('word.html', word=word_info_list, logged_in=is_logged_in())
+    return render_template('word.html', word=word_info_list)
 
 
 @app.route('/signup', methods=['POST', 'GET'])
@@ -135,7 +135,7 @@ def render_signup():
 
         return redirect("/login")
     
-    return render_template('signup.html', roles=role_list, logged_in=is_logged_in())
+    return render_template('signup.html', roles=role_list)
 
 
 
@@ -176,7 +176,7 @@ def render_login():
 
 
 
-    return render_template('login.html', logged_in=is_logged_in())
+    return render_template('login.html')
 
 @app.route('/logout')
 def logout():
