@@ -243,9 +243,13 @@ def confirm_category_delete(cat_id):
         return redirect('/?message=Need+To+Be+Logged+in')
     
     con = create_connection(DATABASE)
-    query = "DELETE FROM Categories WHERE id = ?"
+    query1 = "PRAGMA foreign_keys = ON"
+    query2 = """
+    DELETE FROM Categories WHERE id = ?
+    """
     cur = con.cursor()
-    cur.execute(query, (cat_id, ))
+    cur.execute(query1)
+    cur.execute(query2, (cat_id, ))
     con.commit()
     con.close()
     return redirect('/admin')

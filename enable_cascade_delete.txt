@@ -1,0 +1,43 @@
+// sql commands to update Vocab_List so that it works with cascade delete
+
+
+
+// Create a New Table with ON DELETE CASCADE for cat_id
+CREATE TABLE "Vocab_List_new" (
+    "id" INTEGER NOT NULL UNIQUE,
+    "maori" TEXT NOT NULL,
+    "english" TEXT NOT NULL,
+    "cat_id" INTEGER NOT NULL,
+    "definition" TEXT NOT NULL,
+    "date_of_entry" TEXT NOT NULL,
+    "author_id" INTEGER NOT NULL,
+    "level" INTEGER NOT NULL,
+    "image" TEXT,
+    PRIMARY KEY("id"),
+    FOREIGN KEY("author_id") REFERENCES "Users"("id"),
+    FOREIGN KEY("cat_id") REFERENCES "Categories"("id") ON DELETE CASCADE
+);
+
+
+
+// Copy Data from the Old Table to the New Table
+INSERT INTO "Vocab_List_new" ("id", "maori", "english", "cat_id", "definition", "date_of_entry", "author_id", "level", "image")
+SELECT "id", "maori", "english", "cat_id", "definition", "date_of_entry", "author_id", "level", "image"
+FROM "Vocab_List";
+
+
+// Drop the Old Table
+DROP TABLE "Vocab_List";
+
+
+
+//Rename the New Table to the Original Name
+ALTER TABLE "Vocab_List_new" RENAME TO "Vocab_List";
+
+
+
+//Verify the Foreign Key Constraint
+PRAGMA foreign_key_list("Vocab_List");
+
+
+
