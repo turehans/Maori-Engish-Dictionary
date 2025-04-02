@@ -29,6 +29,12 @@ def is_logged_in():
         return True
 
 
+def check_if_teacher():
+    if session.get("role_id") == str(1):
+        return True
+    else:
+        return False
+
 
 # parses a list into every webpage
 @app.context_processor
@@ -40,11 +46,8 @@ def inject_list():
     category_list = cur.fetchall()
     print(category_list)
     con.close()
-    is_teacher = False
-    if session.get("role_id") == str(1):
-        print("User is a teacher")
-        is_teacher = True
-
+    is_teacher = check_if_teacher()
+    
     return dict(categories=category_list, logged_in=is_logged_in(), teacher=is_teacher)
 
 
@@ -195,7 +198,7 @@ def logout():
 
 @app.route('/admin')
 def render_admin():
-     if not is_logged_in():
+     if check_if_teacher() == False:
          return redirect('/?message=Need+To+Be+Logged+in')
      con = create_connection(DATABASE)
      query = "SELECT * FROM Categories"
@@ -208,7 +211,7 @@ def render_admin():
  
 @app.route('/add_category', methods=['POST'])
 def add_category():
-    if not is_logged_in():
+    if check_if_teacher() == False:
         return redirect('/?message=Need+To+Be+Logged+in')
     if request.method == 'POST':
         print(request.form)
@@ -225,7 +228,7 @@ def add_category():
  
 @app.route('/delete_category', methods=['POST'])
 def render_delete_category():
-    if not is_logged_in():
+    if check_if_teacher() == False:
         return redirect('/?message=Need+To+Be+Logged+in')
     if request.method == 'POST':
         print(request.form)
@@ -239,7 +242,7 @@ def render_delete_category():
 
 @app.route('/confirm_category_delete/<cat_id>')
 def confirm_category_delete(cat_id):
-    if not is_logged_in():
+    if check_if_teacher() == False:
         return redirect('/?message=Need+To+Be+Logged+in')
     
     con = create_connection(DATABASE)
