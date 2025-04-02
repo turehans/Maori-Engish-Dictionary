@@ -15,6 +15,7 @@ DATABASE = "/home/ture/Documents/Obsidian Vaults/Ture Hansson Vault 1/Computer S
 def create_connection(db_file):
     try:
         connection = sqlite3.Connection(db_file)
+        connection.execute("PRAGMA foreign_keys = ON")
         return connection
     except sqlite3.Error as e:
         print(e)
@@ -34,7 +35,7 @@ def check_if_teacher():
         return True
     else:
         return False
-
+    
 
 # parses a list into every webpage
 @app.context_processor
@@ -55,8 +56,9 @@ def inject_list():
 def render_homepage():
     return render_template('home.html')
 
-@app.route('/dictionary/<cat_id>')
-def render_dictionary(cat_id):
+@app.route('/dictionary/')
+def render_dictionary():
+    cat_id = request.args.get('cat_id')
     con = create_connection(DATABASE)
     query = "SELECT id, maori, english, definition, level FROM Vocab_List WHERE cat_id=?"
     cur = con.cursor()
@@ -66,8 +68,10 @@ def render_dictionary(cat_id):
     con.close()
     return render_template('dictionary.html', words=words_list)
 
-@app.route('/word/<word_id>')
-def render_word(word_id):
+@app.route('/word/')
+def render_word():
+
+    word_id = request.args.get('word_id')
     con = create_connection(DATABASE)
     query = """
 SELECT Vocab_List.*, Users.username AS author_name
@@ -196,7 +200,7 @@ def logout():
     return redirect('/?message=See+You+Next+Time}')
 
 
-@app.route('/admin')
+@app.route('/admin/')
 def render_admin():
      if check_if_teacher() == False:
          return redirect('/?message=Need+To+Be+Logged+in')
@@ -209,7 +213,7 @@ def render_admin():
      return render_template("admin.html", categories=category_list)
  
  
-@app.route('/add_category', methods=['POST'])
+@app.route('/add_category_to_database/', methods=['POST'])
 def add_category():
     if check_if_teacher() == False:
         return redirect('/?message=Need+To+Be+Logged+in')
@@ -218,41 +222,37 @@ def add_category():
         cat_name = request.form.get('name').lower().strip()
         print(cat_name)
         con = create_connection(DATABASE)
-        query = "INSERT INTO Categories ('name') VALUES (?)"
+        query = "INSERT INTO Categories ('name') VALUES (?);"
         cur = con.cursor()
-        cur.execute(query, (cat_name, ))
+        cur.execute(query, (cat_name,))
         con.commit()
         con.close()
     return redirect('/admin')
  
  
-@app.route('/delete_category', methods=['POST'])
-def render_delete_category():
+@app.route('/delete_from_database/', methods=['POST'])
+def delete_from_category():
     if check_if_teacher() == False:
         return redirect('/?message=Need+To+Be+Logged+in')
     if request.method == 'POST':
-        print(request.form)
-        category = request.form.get('name').lower().strip()
-        print(f"The category info is {category}")
-        category = category.split(",")
-        cat_id = category[0]
-        cat_name = category[1]
-        return render_template("delete_confirm.html", id=cat_id, name=cat_name, type="category")
+        table = request.args.get('table')
+        print(f"The table is {table}")
+        id = request.form.get('id').lower().strip()
+        return render_template("delete_confirm.html", id=id, table=table)
     return redirect('/admin')
 
-@app.route('/confirm_category_delete/<cat_id>')
-def confirm_category_delete(cat_id):
+@app.route('/confirm_delete/')
+def confirm_delete():
     if check_if_teacher() == False:
-        return redirect('/?message=Need+To+Be+Logged+in')
+        return redirect('/?message=Need+To+Be+Logged+In')
+    cat_id = request.args.get('cat_id')
+    table = request.args.get('table')
+    print(f"The table that we are deleting from is {table}")
     
     con = create_connection(DATABASE)
-    query1 = "PRAGMA foreign_keys = ON"
-    query2 = """
-    DELETE FROM Categories WHERE id = ?
-    """
+    query = f"DELETE FROM {table} WHERE id = (?)"
     cur = con.cursor()
-    cur.execute(query1)
-    cur.execute(query2, (cat_id, ))
+    cur.execute(query, (cat_id,))
     con.commit()
     con.close()
     return redirect('/admin')

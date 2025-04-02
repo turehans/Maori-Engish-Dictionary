@@ -9,7 +9,7 @@ admin
 <h3>Category Admin</h3>
 
 <h4>Add a Category</h4>
-<form class="myform" method="POST", action="/add_category">
+<form class="myform" method="POST", action="/add_category_to_database/">
   <div class="form-group">
     <div class="form-label"><label for="name">Category Name</label></div>
     <div class="form-element"><input type="text" name="name" id="name" required></div>
@@ -23,13 +23,13 @@ admin
 </form>
 
 <h4>Remove a Category</h4>
-<form class="myform" method="POST", action="/delete_category">
+<form class="myform" method="POST", action="/delete_from_database/?table=Categories">
   <div class="form-group">
     <div class="form-label"><label for="name">Category Name</label></div>
     <div class="form-element">
       <select id="name" name="name">
         {% for category in categories %}
-        <option value="{{category[0]}}, {{category[1]}}" >{{category[1]}}</option>
+        <option value="{{category[0]}}" >{{category[1]}}</option>
         {% endfor %}
       </select>
     </div>
