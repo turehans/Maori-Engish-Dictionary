@@ -2,6 +2,7 @@ from ast import Import
 from flask import Flask, render_template, request, redirect, session
 import sqlite3
 from flask_bcrypt import Bcrypt
+from datetime import date
 
 
 app = Flask(__name__)
@@ -10,7 +11,7 @@ app.secret_key = "6gctpxYDLDUe6d33vGD1P45mvzaKgMx9"
 
 
 
-DATABASE = "/home/ture/Documents/Obsidian Vaults/Ture Hansson Vault 1/Computer Science/School Coding Projects/2025/Databases/Maori-Engish-Dictionary/dictionary.db"
+DATABASE = "/home/ture/Documents/Files/Ture Hansson Vault 1/Computer Science/School Coding Projects/2025/Databases/Maori-Engish-Dictionary/dictionary.db"
 
 def create_connection(db_file):
     try:
@@ -32,6 +33,7 @@ def is_logged_in():
 
 def check_if_teacher():
     if session.get("role_id") == str(1):
+        print(session)
         return True
     else:
         return False
@@ -59,6 +61,7 @@ def render_homepage():
 @app.route('/dictionary/')
 def render_dictionary():
     cat_id = request.args.get('cat_id')
+    print(f"cat_id = {cat_id}")
     con = create_connection(DATABASE)
     query = "SELECT id, maori, english, definition, level FROM Vocab_List WHERE cat_id=?"
     cur = con.cursor()
@@ -66,7 +69,7 @@ def render_dictionary():
     words_list = cur.fetchall()
     print(words_list)
     con.close()
-    return render_template('dictionary.html', words=words_list)
+    return render_template('dictionary.html', words=words_list, cat_id=cat_id)
 
 @app.route('/word/')
 def render_word():
@@ -228,6 +231,37 @@ def add_category():
         con.commit()
         con.close()
     return redirect('/admin')
+
+@app.route('/add_word_to_database/', methods=['POST'])
+def add_word():
+    if check_if_teacher() == False:
+        return redirect('/?message=Need+To+Be+Logged+in')
+    if request.method == 'POST':
+        
+        today = date.today()
+        today = today.strftime("%Y.%m.%d")  # Convert date to string
+
+
+
+        maori = request.form.get('maori').lower().strip()
+        english = request.form.get('english').lower()
+        definition = request.form.get('definition')
+        level = request.form.get('level').lower().strip()
+        cat_id = request.args.get('id')
+        print(f"cat_id is {cat_id}")
+        image = "noimage"
+        author_id = session.get("user_id")
+        date_of_entry = today
+    
+
+
+        con = create_connection(DATABASE)
+        query = "INSERT INTO Vocab_List (maori, english, cat_id, definition, date_of_entry, author_id, level, image) VALUES (?, ?, ?, ?, ?, ?, ? ,?)"
+        cur = con.cursor()
+        cur.execute(query, (maori, english, cat_id, definition, date_of_entry, author_id, level, image))
+        con.commit()
+        con.close()
+    return redirect(f"/dictionary/?cat_id={cat_id}")
  
  
 @app.route('/delete_from_database/', methods=['POST'])
@@ -236,7 +270,6 @@ def delete_from_category():
         return redirect('/?message=Need+To+Be+Logged+in')
     if request.method == 'POST':
         table = request.args.get('table')
-        print(f"The table is {table}")
         id = request.form.get('id').lower().strip()
         return render_template("delete_confirm.html", id=id, table=table)
     return redirect('/admin')
@@ -255,6 +288,9 @@ def confirm_delete():
     cur.execute(query, (cat_id,))
     con.commit()
     con.close()
-    return redirect('/admin')
+    return redirect('/')
 
 app.run(host='0.0.0.0', debug=True)
+
+
+

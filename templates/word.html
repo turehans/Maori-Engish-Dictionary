@@ -17,4 +17,25 @@
 
 </div>
 
+
+<h2>Remove Word</h2>
+<form class="myform" method="POST", action="/delete_from_database/?table=Vocab_List">
+  <div class="form-group">
+    <div class="form-element">
+      <select id="id" name="id">
+        <option value="{{word[0]}}" >{{word[1]}}</option>
+      </select>
+    </div>
+  </div>
+  
+  <div class="form-group">
+    <div class="form-label"></div>
+    <div class="form-element"><input type="submit" value="Remove Category"></div>
+  </div>
+
+
+</form>
+
+
+
 {% endblock %}
