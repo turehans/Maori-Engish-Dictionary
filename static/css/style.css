@@ -9,42 +9,61 @@
     display: grid;
     grid-template-columns: 75px auto;
     grid-template-areas: 'nav header' 'main main' 'footer footer';
-    }
+}
 
 header {
     grid-area: header;
-    background-color: #f00;
-    padding: 1rem;
+    background-color: #4CAF50; /* Modern green color */
+    color: white;
+    padding: 1.5rem;
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: bold;
 }
 
 nav {
     grid-area: nav;
+    background-color: #333;
+    color: white;
+    padding: 1rem;
 }
 
 main {
     grid-area: main;
-    padding: 1rem;
-    background-color: #edd;
+    padding: 2rem;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 h1, h2, h3, h4 {
     padding: 1rem 0;
     font-family: 'Suez One', serif;
-    color: #000;
-    text-shadow: 2px 2px 4px #fff;
+    color: #333;
+    text-shadow: none;
 }
 
 p {
     padding: 0.5rem 0;
+    line-height: 1.6;
+    color: #555;
 }
 
 a {
-    color: #222;
+    color: #4CAF50;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s;
+}
+
+a:hover {
+    color: #333;
 }
 
 img {
     width: 100%;
 }
+
 .dataForm {
     margin: 1rem 0;
     border: 1px solid #999;
@@ -78,33 +97,42 @@ img {
 
 table {
     width: 100%;
-    border: 2px solid #666;
+    border: 1px solid #ddd;
     border-collapse: collapse;
+    margin: 1rem 0;
+    background-color: white;
 }
 
 th, td {
-    border: 1px solid #888;
-    padding: 0.2rem;
+    border: 1px solid #ddd;
+    padding: 0.8rem;
     text-align: left;
 }
+
 th {
-    background-color: #000;
-    color: #fff;
+    background-color: #4CAF50;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
 }
 
 img .thumb {
     max-width: 90px;
 }
+
 footer {
     grid-area: footer;
     padding: 1rem;
-    background-color: #f00;
+    background-color: #333;
+    color: white;
+    text-align: center;
+    font-size: 1rem;
 }
 
 footer p {
-    color: #000;
-    text-shadow: 2px 2px 4px #fff;
-    font-size: 1.5rem;
+    margin: 0;
 }
 
 footer img {
@@ -119,6 +147,7 @@ footer img {
     padding: 1rem;
     border-radius: 5px;
     margin-bottom: 1rem;
+    transition: transform 0.3s, opacity 0.3s;
 }
 
 .flash-message.error {
@@ -133,145 +162,138 @@ footer img {
     border: 1px solid #c3e6cb;
 }
 
+.flash-message:hover {
+    transform: scale(1.05);
+    opacity: 0.9;
+}
+
+input[type="submit"], input[type="reset"] {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+input[type="submit"]:hover, input[type="reset"]:hover {
+    background-color: #45a049;
+}
+
 @media only screen and (max-width: 768px) {
-    nav
-    {
-      display: block;
-      position: relative;
-      top: 20px;
-      left: 20px;
-
-      z-index: 1;
-
-      -webkit-user-select: none;
-      user-select: none;
+    nav {
+        display: block;
+        position: relative;
+        top: 20px;
+        left: 20px;
+        z-index: 1;
+        -webkit-user-select: none;
+        user-select: none;
     }
 
-    nav a
-    {
-      text-decoration: none;
-      color: #232323;
-      transition: color 0.3s ease;
+    nav a {
+        text-decoration: none;
+        color: #232323;
+        transition: color 0.3s ease;
     }
 
-    nav a:hover
-    {
-      color: tomato;
+    nav a:hover {
+        color: tomato;
     }
 
-
-    nav input
-    {
-      display: block;
-      width: 40px;
-      height: 32px;
-      position: absolute;
-      top: -7px;
-      left: -5px;
-
-      cursor: pointer;
-
-      opacity: 0; /* hide this */
-      z-index: 2; /* and place it over the hamburger */
-
-      -webkit-touch-callout: none;
+    nav input {
+        display: block;
+        width: 40px;
+        height: 32px;
+        position: absolute;
+        top: -7px;
+        left: -5px;
+        cursor: pointer;
+        opacity: 0; /* hide this */
+        z-index: 2; /* and place it over the hamburger */
+        -webkit-touch-callout: none;
     }
 
     /*
      * Just a quick hamburger
      */
-    nav span
-    {
-      display: block;
-      width: 33px;
-      height: 4px;
-      margin-bottom: 5px;
-      position: relative;
-
-      background: #000;
-      border-radius: 3px;
-
-      z-index: 1;
-
-      transform-origin: 4px 0px;
-
-      transition: transform 0.5s cubic-bezier(0.77,0.2,0.05,1.0),
-                  background 0.5s cubic-bezier(0.77,0.2,0.05,1.0),
-                  opacity 0.55s ease;
+    nav span {
+        display: block;
+        width: 33px;
+        height: 4px;
+        margin-bottom: 5px;
+        position: relative;
+        background: #000;
+        border-radius: 3px;
+        z-index: 1;
+        transform-origin: 4px 0px;
+        transition: transform 0.5s cubic-bezier(0.77,0.2,0.05,1.0),
+                    background 0.5s cubic-bezier(0.77,0.2,0.05,1.0),
+                    opacity 0.55s ease;
     }
 
-    nav span:first-child
-    {
-      transform-origin: 0% 0%;
+    nav span:first-child {
+        transform-origin: 0% 0%;
     }
 
-    nav span:nth-last-child(2)
-    {
-      transform-origin: 0% 100%;
+    nav span:nth-last-child(2) {
+        transform-origin: 0% 100%;
     }
 
     /*
      * Transform all the slices of hamburger
      * into a crossmark.
      */
-    nav input:checked ~ span
-    {
-      opacity: 1;
-      transform: rotate(45deg) translate(-2px, -1px);
-      background: #000;
+    nav input:checked ~ span {
+        opacity: 1;
+        transform: rotate(45deg) translate(-2px, -1px);
+        background: #000;
     }
 
     /*
      * But let's hide the middle one.
      */
-    nav input:checked ~ span:nth-last-child(3)
-    {
-      opacity: 0;
-      transform: rotate(0deg) scale(0.2, 0.2);
+    nav input:checked ~ span:nth-last-child(3) {
+        opacity: 0;
+        transform: rotate(0deg) scale(0.2, 0.2);
     }
 
     /*
      * Ohyeah and the last one should go the other direction
      */
-    nav input:checked ~ span:nth-last-child(2)
-    {
-      transform: rotate(-45deg) translate(0, -1px);
+    nav input:checked ~ span:nth-last-child(2) {
+        transform: rotate(-45deg) translate(0, -1px);
     }
 
     /*
      * Make this absolute positioned
      * at the top left of the screen
      */
-    nav ul
-    {
-      position: absolute;
-      width: 300px;
-      margin: -100px 0 0 -50px;
-      padding: 50px;
-      padding-top: 125px;
-
-      background: #ed9999;
-      list-style-type: none;
-      -webkit-font-smoothing: antialiased;
-      /* to stop flickering of text in safari */
-
-      transform-origin: 0% 0%;
-      transform: translate(-100%, 0);
-
-      transition: transform 0.5s cubic-bezier(0.77,0.2,0.05,1.0);
+    nav ul {
+        position: absolute;
+        width: 300px;
+        margin: -100px 0 0 -50px;
+        padding: 50px;
+        padding-top: 125px;
+        background: #ed9999;
+        list-style-type: none;
+        -webkit-font-smoothing: antialiased;
+        /* to stop flickering of text in safari */
+        transform-origin: 0% 0%;
+        transform: translate(-100%, 0);
+        transition: transform 0.5s cubic-bezier(0.77,0.2,0.05,1.0);
     }
 
-    nav ul li
-    {
-      padding: 5px 0;
+    nav ul li {
+        padding: 5px 0;
     }
 
     /*
      * And let's slide it in from the left
      */
-    nav input:checked ~ ul
-    {
-      transform: none;
+    nav input:checked ~ ul {
+        transform: none;
     }
 }
 
@@ -288,19 +310,27 @@ footer img {
 
     nav ul {
         list-style: none;
+        padding: 0;
     }
+
     nav li {
-        padding: 0.2rem 0;
+        margin: 0.5rem 0;
     }
+
     nav a {
-        color: #fff;
+        color: white;
         text-decoration: none;
+        font-weight: bold;
+        transition: color 0.3s, background-color 0.3s;
     }
 
     nav a:hover {
-        color: #000;
-        background-color: #fff;
+        color: #4CAF50;
+        background-color: white;
+        padding: 0.2rem 0.5rem;
+        border-radius: 5px;
     }
+
     nav input, nav span {
         visibility: hidden;
     }
@@ -308,11 +338,13 @@ footer img {
     main {
         background-image: url('/poutama.jpg');
     }
+
     .formRow {
         display: grid;
         grid-template-columns: 1fr 2fr;
         margin: 0.5rem 0;
     }
+
     .dataForm p input {
         display: inline;
     }

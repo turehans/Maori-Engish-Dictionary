@@ -690,7 +690,7 @@ def add_word():
             cat_id = validate_integer(request.args.get('id'), "Category ID")
         except ValueError as e:
             flash(str(e), "error")  # Flash error message
-            return redirect('/admin')
+            return redirect(f'/dictionary/?cat_id={request.args.get("id")}')  # Redirect back to the dictionary page
         # If the request method is POST, process the form data
 
         # Get the current date and format it as a string
