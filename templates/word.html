@@ -17,7 +17,7 @@
 
 </div>
 
-
+{% if teacher == True %}
 <h2>Remove Word</h2>
 <form class="myform" method="POST", action="/delete_from_database/?table=Vocab_List">
   <div class="form-group">
@@ -62,6 +62,6 @@
 
 </form>
 
-
+{% endif %}
 
 {% endblock %}
