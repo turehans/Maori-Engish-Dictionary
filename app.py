@@ -11,7 +11,7 @@ app.secret_key = "6gctpxYDLDUe6d33vGD1P45mvzaKgMx9"
 
 
 
-DATABASE = "/home/ture/Documents/Files/Ture Hansson Vault 1/Computer Science/School Coding Projects/2025/Databases/Maori-Engish-Dictionary/dictionary.db"
+DATABASE = "/home/ture/Maori-Engish-Dictionary/dictionary.db"
 
 def create_connection(db_file):
     try:
@@ -87,8 +87,36 @@ WHERE Vocab_List.id=?;
     word_info_list = cur.fetchone()
     print(f"Word info = {word_info_list}")
     con.close()
-    return render_template('word.html', word=word_info_list)
+    return render_template('word.html', word=word_info_list, word_id=word_id)
 
+
+@app.route("/modify_word", methods=["POST", "GET"])
+def modify_word():
+    if check_if_teacher() == False:
+        return redirect("/message/Need+To+Be+Logged+In")
+    if request.method == "POST":
+        word_id = request.args.get("word_id")
+        english = request.form.get("english")
+        definition = request.form.get("definition")
+        level = request.form.get("level")
+        print(f"word_id = {word_id}")
+
+
+        con = create_connection(DATABASE)
+        query = """
+UPDATE Vocab_List
+SET definition = ?, 
+    english = ?, 
+    level = ? 
+WHERE id = ?;
+        """
+
+        cur = con.cursor()
+        cur.execute(query, (definition, english, level, word_id))
+        con.commit()
+        con.close()
+
+    return redirect(f"/word?word_id={word_id}")
 
 @app.route('/signup', methods=['POST', 'GET'])
 def render_signup():
@@ -178,7 +206,7 @@ def render_login():
             db_password = user_data[3]
             role_id = user_data[4]
         except IndexError:
-            return r1edirect(r"/login?error=Invalid+username+or+password")
+            return redirect(r"/login?error=Invalid+username+or+password")
 
         if not bcrypt.check_password_hash(db_password, password):
             return redirect(r"/login?error=Invalid+username+or+password")
