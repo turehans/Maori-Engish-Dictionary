@@ -14,6 +14,7 @@ from flask import Flask, render_template, request, redirect, session
 import sqlite3
 from flask_bcrypt import Bcrypt
 from datetime import date
+from werkzeug.utils import escape  # Import escape for sanitizing inputs
 
 # Initialize the Flask application
 # Flask is a lightweight WSGI web application framework in Python
@@ -162,6 +163,48 @@ def render_homepage():
     return render_template('home.html')
 
 
+def validate_integer(value, field_name):
+    """
+    Validates that the input value is an integer.
+
+    Args:
+        value (str): The input value to validate.
+        field_name (str): The name of the field being validated (for error messages).
+
+    Returns:
+        int: The validated integer value.
+
+    Raises:
+        ValueError: If the value is not a valid integer.
+    """
+    try:
+        return int(value)
+    except ValueError:
+        raise ValueError(f"Invalid input for {field_name}: Must be an integer.")
+
+
+def validate_string(value, field_name, max_length=255):
+    """
+    Validates that the input value is a string and does not exceed the maximum length.
+
+    Args:
+        value (str): The input value to validate.
+        field_name (str): The name of the field being validated (for error messages).
+        max_length (int): The maximum allowed length for the string.
+
+    Returns:
+        str: The validated string value.
+
+    Raises:
+        ValueError: If the value is not a valid string or exceeds the maximum length.
+    """
+    if not isinstance(value, str):
+        raise ValueError(f"Invalid input for {field_name}: Must be a string.")
+    if len(value) > max_length:
+        raise ValueError(f"Invalid input for {field_name}: Exceeds maximum length of {max_length}.")
+    return value.strip()
+
+
 @app.route('/dictionary/')
 def render_dictionary():
     """
@@ -180,8 +223,12 @@ def render_dictionary():
         - The `words_list` contains tuples with the following structure:
           (id, maori, english, definition, level).
     """
-    # Get the category ID from the query parameters
+    # Get the category ID from the query parameters and validate it
     cat_id = request.args.get('cat_id')
+    try:
+        cat_id = validate_integer(cat_id, "Category ID")
+    except ValueError as e:
+        return redirect(f"/?error={str(e)}")
     print(f"cat_id = {cat_id}")
     # Connect to the database
     con = create_connection(DATABASE)
@@ -222,8 +269,12 @@ def render_word():
           word details along with the author's username.
         - The database connection is closed after the query execution.
     """
-    # Get the word ID from the query parameters
+    # Get the word ID from the query parameters and validate it
     word_id = request.args.get('word_id')
+    try:
+        word_id = validate_integer(word_id, "Word ID")
+    except ValueError as e:
+        return redirect(f"/?error={str(e)}")
     # Connect to the database
     con = create_connection(DATABASE)
     # SQL query to fetch word details and author information
@@ -272,12 +323,15 @@ def modify_word():
     if not check_if_teacher():
         return redirect("/message/Need+To+Be+Logged+In")
     if request.method == "POST":
-        # Get the word ID from the query parameters
+        # Validate and sanitize inputs
         word_id = request.args.get("word_id")
-        # Get the updated word details from the form data
-        english = request.form.get("english")
-        definition = request.form.get("definition")
-        level = request.form.get("level")
+        try:
+            word_id = validate_integer(word_id, "Word ID")
+            english = validate_string(request.form.get("english"), "English Translation")
+            definition = validate_string(request.form.get("definition"), "Definition")
+            level = validate_integer(request.form.get("level"), "Level")
+        except ValueError as e:
+            return redirect(f"/?error={str(e)}")
         print(f"word_id = {word_id}")
 
         # Connect to the database
@@ -338,16 +392,27 @@ def render_signup():
     con.close()
 
     if request.method == 'POST':
+        try:
+            # Validate and sanitize inputs
+            fname = validate_string(request.form.get('fname').title(), "First Name")
+            lname = validate_string(request.form.get('lname').title(), "Last Name")
+            email = validate_string(request.form.get('email').lower(), "Email")
+            username = validate_string(request.form.get('username'), "Username")
+            password = validate_string(request.form.get('password'), "Password", max_length=128)
+            password2 = validate_string(request.form.get('password2'), "Password Confirmation", max_length=128)
+            role_id = validate_integer(request.form.get('role'), "Role ID")
+        except ValueError as e:
+            return redirect(f"/signup?error={str(e)}")
         # If the request method is POST, process the form data
         print(request.form)
         # Retrieve and sanitize form inputs
-        fname = request.form.get('fname').title().strip()  # First name
-        lname = request.form.get('lname').title().strip()  # Last name
-        email = request.form.get('email').lower().strip()  # Email address
-        username = request.form.get('username').strip()  # Username
-        password = request.form.get('password').strip()  # Password
-        password2 = request.form.get('password2').strip()  # Confirm password
-        role_id = request.form.get('role').lower().strip()  # Role ID
+        fname = escape(request.form.get('fname').title().strip())  # First name
+        lname = escape(request.form.get('lname').title().strip())  # Last name
+        email = escape(request.form.get('email').lower().strip())  # Email address
+        username = escape(request.form.get('username').strip())  # Username
+        password = escape(request.form.get('password').strip())  # Password
+        password2 = escape(request.form.get('password2').strip())  # Confirm password
+        role_id = escape(request.form.get('role').lower().strip())  # Role ID
 
         # Validate that the passwords match
         if password != password2:
@@ -610,6 +675,15 @@ def add_word():
         # Redirect to the home page with a message if the user is not a teacher
         return redirect('/?message=Need+To+Be+Logged+in')
     if request.method == 'POST':
+        try:
+            # Validate and sanitize inputs
+            maori = validate_string(request.form.get('maori').lower(), "Maori Word")
+            english = validate_string(request.form.get('english').lower(), "English Translation")
+            definition = validate_string(request.form.get('definition'), "Definition")
+            level = validate_integer(request.form.get('level'), "Level")
+            cat_id = validate_integer(request.args.get('id'), "Category ID")
+        except ValueError as e:
+            return redirect(f"/?error={str(e)}")
         # If the request method is POST, process the form data
 
         # Get the current date and format it as a string
@@ -668,11 +742,16 @@ def delete_from_category():
         # Redirect to the home page with a message if the user is not a teacher
         return redirect('/?message=Need+To+Be+Logged+in')
     if request.method == 'POST':
+        try:
+            # Validate and sanitize inputs
+            table = validate_string(request.args.get('table'), "Table Name")
+            id = validate_integer(request.form.get('id'), "ID")
+        except ValueError as e:
+            return redirect(f"/?error={str(e)}")
         # If the request method is POST, process the form data
-        # Retrieve the table name from the query parameters
-        table = request.args.get('table')
-        # Retrieve and sanitize the item ID from the form data
-        id = request.form.get('id').lower().strip()
+        # Sanitize inputs
+        table = escape(request.args.get('table'))
+        id = escape(request.form.get('id').lower().strip())
         # Render the delete confirmation page with the table name and item ID
         return render_template("delete_confirm.html", id=id, table=table)
     # Redirect to the admin page for other cases
@@ -710,16 +789,21 @@ def confirm_delete():
     if check_if_teacher() is False:
         # Redirect to the home page with a message if the user is not a teacher
         return redirect('/?message=Need+To+Be+Logged+In')
-    # Retrieve the category ID from the query parameters
-    cat_id = request.args.get('cat_id')
-    # Retrieve the table name from the query parameters
-    table = request.args.get('table')
+    try:
+        # Validate and sanitize inputs
+        cat_id = validate_integer(request.args.get('cat_id'), "Category ID")
+        table = validate_string(request.args.get('table'), "Table Name")
+    except ValueError as e:
+        return redirect(f"/?error={str(e)}")
+    # Sanitize inputs
+    cat_id = escape(request.args.get('cat_id'))
+    table = escape(request.args.get('table'))
     print(f"The table that we are deleting from is {table}")
 
     # Connect to the database
     con = create_connection(DATABASE)
     # SQL query to delete the record from the specified table
-    query = f"DELETE FROM {table} WHERE id = (?)"
+    query = f"DELETE FROM {table} WHERE id = ?"
     cur = con.cursor()
     # Execute the query with the provided category ID
     cur.execute(query, (cat_id,))
