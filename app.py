@@ -10,7 +10,7 @@ The application uses SQLite as the database and bcrypt for secure password hashi
 It also includes role-based access control to differentiate between regular users and teachers.
 """
 
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, flash
 import sqlite3
 from flask_bcrypt import Bcrypt
 from datetime import date
@@ -228,7 +228,8 @@ def render_dictionary():
     try:
         cat_id = validate_integer(cat_id, "Category ID")
     except ValueError as e:
-        return redirect(f"/?error={str(e)}")
+        flash(str(e), "error")  # Flash error message
+        return redirect('/')
     print(f"cat_id = {cat_id}")
     # Connect to the database
     con = create_connection(DATABASE)
@@ -274,7 +275,8 @@ def render_word():
     try:
         word_id = validate_integer(word_id, "Word ID")
     except ValueError as e:
-        return redirect(f"/?error={str(e)}")
+        flash(str(e), "error")  # Flash error message
+        return redirect('/')
     # Connect to the database
     con = create_connection(DATABASE)
     # SQL query to fetch word details and author information
@@ -331,7 +333,8 @@ def modify_word():
             definition = validate_string(request.form.get("definition"), "Definition")
             level = validate_integer(request.form.get("level"), "Level")
         except ValueError as e:
-            return redirect(f"/?error={str(e)}")
+            flash(str(e), "error")  # Flash error message
+            return redirect(f"/word?word_id={word_id}")
         print(f"word_id = {word_id}")
 
         # Connect to the database
@@ -401,8 +404,11 @@ def render_signup():
             password = validate_string(request.form.get('password'), "Password", max_length=128)
             password2 = validate_string(request.form.get('password2'), "Password Confirmation", max_length=128)
             role_id = validate_integer(request.form.get('role'), "Role ID")
+            if password != password2:
+                raise ValueError("Passwords do not match.")
         except ValueError as e:
-            return redirect(f"/signup?error={str(e)}")
+            flash(str(e), "error")  # Flash error message
+            return redirect('/signup')
         # If the request method is POST, process the form data
         print(request.form)
         # Retrieve and sanitize form inputs
@@ -683,7 +689,8 @@ def add_word():
             level = validate_integer(request.form.get('level'), "Level")
             cat_id = validate_integer(request.args.get('id'), "Category ID")
         except ValueError as e:
-            return redirect(f"/?error={str(e)}")
+            flash(str(e), "error")  # Flash error message
+            return redirect('/admin')
         # If the request method is POST, process the form data
 
         # Get the current date and format it as a string
@@ -747,7 +754,8 @@ def delete_from_category():
             table = validate_string(request.args.get('table'), "Table Name")
             id = validate_integer(request.form.get('id'), "ID")
         except ValueError as e:
-            return redirect(f"/?error={str(e)}")
+            flash(str(e), "error")  # Flash error message
+            return redirect('/admin')
         # If the request method is POST, process the form data
         # Sanitize inputs
         table = escape(request.args.get('table'))
@@ -794,7 +802,8 @@ def confirm_delete():
         cat_id = validate_integer(request.args.get('cat_id'), "Category ID")
         table = validate_string(request.args.get('table'), "Table Name")
     except ValueError as e:
-        return redirect(f"/?error={str(e)}")
+        flash(str(e), "error")  # Flash error message
+        return redirect('/admin')
     # Sanitize inputs
     cat_id = escape(request.args.get('cat_id'))
     table = escape(request.args.get('table'))
