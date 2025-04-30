@@ -406,6 +406,8 @@ def render_signup():
             role_id = validate_integer(request.form.get('role'), "Role ID")
             if password != password2:
                 raise ValueError("Passwords do not match.")
+            if len(password) < 8:
+                raise ValueError("Password is too short. Must be at least 8 characters.")
         except ValueError as e:
             flash(str(e), "error")  # Flash error message
             return redirect('/signup')
@@ -423,12 +425,12 @@ def render_signup():
         # Validate that the passwords match
         if password != password2:
             # Redirect back to the signup page with an error message
-            return redirect(r"\signup?error=Passwords+do+not+match")
+            return redirect("/signup?error=Passwords+do+not+match")
 
         # Validate that the password length is at least 8 characters
         if len(password) < 8:
             # Redirect back to the signup page with an error message
-            return redirect(r"\signup?error=Password+is+too+short")
+            return redirect("/signup?error=Password+is+too+short")
 
         # Hash the password using bcrypt for secure storage
         hashed_password = bcrypt.generate_password_hash(password)
@@ -449,14 +451,14 @@ def render_signup():
         except sqlite3.IntegrityError:
             # Handle duplicate email error
             con.close()
-            return redirect(r'\signup?error=Email+already+in+use')
+            flash("Email already in use.", "error")  # Flash error message
+            return redirect("/signup")
 
         # Commit the changes to the database
         con.commit()
-        # Close the database connection
         con.close()
 
-        # Redirect the user to the login page after successful signup
+        flash("Signup successful! Please log in.", "success")  # Flash success message
         return redirect("/login")
 
     # Render the signup.html template with the list of roles
@@ -518,14 +520,14 @@ def render_login():
             first_name = user_data[2]
             db_password = user_data[3]
             role_id = user_data[4]
-        except IndexError:
-            # Redirect back to the login page with an error message if user not found
-            return redirect(r"/login?error=Invalid+username+or+password")
+        except (IndexError, TypeError):
+            flash("Invalid username or password.", "error")  # Flash error message
+            return redirect("/login")
 
         # Validate the provided password against the hashed password in the database
         if not bcrypt.check_password_hash(db_password, password):
-            # Redirect back to the login page with an error message if password is incorrect
-            return redirect(r"/login?error=Invalid+username+or+password")
+            flash("Invalid username or password.", "error")  # Flash error message
+            return redirect("/login")
 
         # Store user details in the session for authentication
         session['email'] = email
@@ -535,7 +537,7 @@ def render_login():
         session['role_id'] = role_id
         print(session)
 
-        # Redirect the user to the home page after successful login
+        flash("Login successful!", "success")  # Flash success message
         return redirect('/')
 
     # Render the login.html template if the request method is GET
@@ -723,6 +725,8 @@ def add_word():
         con.commit()
         # Close the database connection
         con.close()
+
+        flash("Word added successfully!", "success")  # Flash success message
     # Redirect to the dictionary page for the associated category
     return redirect(f"/dictionary/?cat_id={cat_id}")
 

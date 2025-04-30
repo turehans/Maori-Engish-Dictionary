@@ -21,25 +21,25 @@
 			<span></span>
 			<span></span>
 			<ul>
-                <li><a href="\">Home</a></li>
+                <li><a href="/">Home</a></li>
                 {% if logged_in == True %}
                 <!-- Show logout option if the user is logged in -->
-                <li><a href="\logout">Logout</a></li>
+                <li><a href="/logout">Logout</a></li>
                 {% else %}
                 <!-- Show signup and login options if the user is not logged in -->
-                <li><a href="\signup">Signup</a></li>
-                <li><a href="\login">Login</a></li>
+                <li><a href="/signup">Signup</a></li>
+                <li><a href="/login">Login</a></li>
                 {% endif %}
 
                 {% if teacher == True %}
                 <!-- Show admin option if the user is a teacher -->
-                <li><a href="\admin">Admin</a></li>
+                <li><a href="/admin">Admin</a></li>
                 {% endif %}
 
                 <li>_______________<br></li>
                 {% for category in categories %}
                 <!-- Loop through categories to display them in the navigation -->
-                  <li><a href="\dictionary\?cat_id={{category[0]}}">{{category[1]}}</a></li>
+                  <li><a href="/dictionary/?cat_id={{category[0]}}">{{category[1]}}</a></li>
                 {% endfor %}
 
 
