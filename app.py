@@ -1,3 +1,15 @@
+"""
+This is a Flask-based web application for a Maori-English dictionary. 
+The application allows users to:
+- View a list of Maori words and their English translations.
+- View detailed information about specific words.
+- Sign up and log in to the application.
+- Teachers can add, modify, and delete words or categories in the dictionary.
+
+The application uses SQLite as the database and bcrypt for secure password hashing.
+It also includes role-based access control to differentiate between regular users and teachers.
+"""
+
 from flask import Flask, render_template, request, redirect, session
 import sqlite3
 from flask_bcrypt import Bcrypt
