@@ -1,47 +1,46 @@
 {% extends 'base.html' %}
 
 {% block pageheading %}
+<!-- Page heading -->
 admin
 {% endblock %}
 
 {% block main %}
+<!-- Admin section for managing categories -->
 
 <h3>Category Admin</h3>
 
+<!-- Form for adding a new category -->
 <h4>Add a Category</h4>
-<form class="myform" method="POST", action="/add_category_to_database/">
+<form class="myform" method="POST" action="/add_category_to_database/">
   <div class="form-group">
     <div class="form-label"><label for="name">Category Name</label></div>
     <div class="form-element"><input type="text" name="name" id="name" required></div>
   </div>
-  
+
   <div class="form-group">
     <div class="form-label"></div>
     <div class="form-element"><input type="submit" value="Add Category"></div>
   </div>
-
 </form>
 
+<!-- Form for removing a category -->
 <h4>Remove a Category</h4>
-<form class="myform" method="POST", action="/delete_from_database/?table=Categories">
+<form class="myform" method="POST" action="/delete_from_database/?table=Categories">
   <div class="form-group">
     <div class="form-label"><label for="name">Category Name</label></div>
     <div class="form-element">
       <select id="id" name="id">
         {% for category in categories %}
-        <option value="{{category[0]}}" >{{category[1]}}</option>
+        <option value="{{category[0]}}">{{category[1]}}</option>
         {% endfor %}
       </select>
     </div>
   </div>
-  
+
   <div class="form-group">
     <div class="form-label"></div>
     <div class="form-element"><input type="submit" value="Remove Category"></div>
   </div>
-
-
 </form>
-
-
 {% endblock %}

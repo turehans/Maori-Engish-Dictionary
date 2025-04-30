@@ -1,12 +1,15 @@
 {% extends "base.html" %}
 
 {% block pageheading %}
+<!-- Page heading -->
 Confirm Delete
 {% endblock %}
 
 {% block main %}
+<!-- Confirmation message for deletion -->
 <h3>Are you sure that you want to delete an item from {{ table }}?
+  <!-- Links for confirming or canceling the deletion -->
   <a href="/confirm_delete/?cat_id={{ id }}&table={{ table }}">Yes</a> /
-    <a href="/admin">No</a>
-  </h3>
+  <a href="/admin">No</a>
+</h3>
 {% endblock %}

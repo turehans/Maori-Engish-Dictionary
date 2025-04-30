@@ -1,29 +1,38 @@
 {% extends 'base.html' %}
 
-{% block title %}Maōri Dictionary | {{word[1]}}{% endblock %}
+{% block title %}
+<!-- Page title dynamically includes the Maori word -->
+Maōri Dictionary | {{word[1]}}
+{% endblock %}
 
-{% block heading %}Maōri - English Dictionary{% endblock %}
+{% block heading %}
+<!-- Main heading for the page -->
+Maōri - English Dictionary
+{% endblock %}
 
 {% block main %}
 <div>
-<h1>{{word[1]}}</h1>
-<h3>Maori for: {{word[2]}}</h3>
-<br>
-<p>{{word[4]}}</p>
-<p>Date of Entry: {{word[5]}}</p>
-<p>Created by: {{word[9]}}</p>
-<p>Level: {{word[7]}}</p>
-<img src="/static/images/{{word[8]}}.jpg">
-
+  <!-- Display the Maori word and its details -->
+  <h1>{{word[1]}}</h1>
+  <h3>Maori for: {{word[2]}}</h3>
+  <br>
+  <p>{{word[4]}}</p> <!-- Definition of the word -->
+  <p>Date of Entry: {{word[5]}}</p> <!-- Date the word was added -->
+  <p>Created by: {{word[9]}}</p> <!-- Author of the word -->
+  <p>Level: {{word[7]}}</p> <!-- Difficulty level of the word -->
+  <img src="/static/images/{{word[8]}}.jpg"> <!-- Associated image -->
 </div>
 
 {% if teacher == True %}
+<!-- Check if the user is a teacher -->
+<!-- Section visible only to teachers for removing or modifying words -->
 <h2>Remove Word</h2>
-<form class="myform" method="POST", action="/delete_from_database/?table=Vocab_List">
+<form class="myform" method="POST" action="/delete_from_database/?table=Vocab_List">
   <div class="form-group">
     <div class="form-element">
+      <!-- Dropdown to select the word to remove -->
       <select id="id" name="id">
-        <option value="{{word[0]}}" >{{word[1]}}</option>
+        <option value="{{word[0]}}">{{word[1]}}</option>
       </select>
     </div>
   </div>
@@ -32,36 +41,32 @@
     <div class="form-label"></div>
     <div class="form-element"><input type="submit" value="Remove Category"></div>
   </div>
-
-
 </form>
 
 <h4>Modify word</h4>
-<form class="myform" method="POST", action="/modify_word?word_id={{ word_id }}">
-  
+<form class="myform" method="POST" action="/modify_word?word_id={{ word_id }}">
+  <!-- Input fields for modifying word details -->
   <div class="form-group">
     <div class="form-label"><label for="name">English Translation</label></div>
-    <div class="form-element"><input type="text" name="english" id="english" value={{word[2]}}required></div>
+    <div class="form-element"><input type="text" name="english" id="english" value="{{word[2]}}" required></div>
   </div>
 
   <div class="form-group">
     <div class="form-label"><label for="name">Definition</label></div>
-    <div class="form-element"><input type="text" name="definition" id="definition" value={{word[4]}}required></div>
+    <div class="form-element"><input type="text" name="definition" id="definition" value="{{word[4]}}" required></div>
   </div>
 
   <div class="form-group">
     <div class="form-label"><label for="name">Level</label></div>
-    <div class="form-element"><input type="text" name="level" id="level" value={{word[7]}} required></div>
+    <div class="form-element"><input type="text" name="level" id="level" value="{{word[7]}}" required></div>
   </div>
-
 
   <div class="form-group">
     <div class="form-label"></div>
     <div class="form-element"><input type="submit" value="Add Word"></div>
   </div>
-
 </form>
-
 {% endif %}
+<!-- End of teacher-specific section -->
 
 {% endblock %}

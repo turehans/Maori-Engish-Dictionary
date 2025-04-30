@@ -1,33 +1,32 @@
 {% extends 'base.html' %}
 
 {% block pageheading %}
+<!-- Page heading -->
 login
 {% endblock %}
 
-
 {% block main %}
+<!-- Login form -->
+<form class="myform" method="POST">
+  <!-- Input field for email -->
+  <div class="form-group">
+    <div class="form-label">Email:</div>
+    <div class="form-element"><input type="email" name="email" id="email" required></div>
+  </div>
 
-  <form class"myform" method="POST">
-    <div class="form-group">
-      <div class"form-label">Email: </div>
-      <div class"form-element"><input type="email" name="email" id="email" required></div>
-    </div>
-  
-    <div class="form-group">
-      <div class="form-label">Password: </div>
-      <div class="form-element"><input type="password" name="password" id="password" required></div>
-    </div>
-  
-    <div class="form-group">
-      <div class="form-label"></div>
-      <div class="form-element"><input type="submit" value="Submit"></div>
-    </div>
+  <!-- Input field for password -->
+  <div class="form-group">
+    <div class="form-label">Password:</div>
+    <div class="form-element"><input type="password" name="password" id="password" required></div>
+  </div>
 
+  <!-- Submit button -->
+  <div class="form-group">
+    <div class="form-label"></div>
+    <div class="form-element"><input type="submit" value="Submit"></div>
+  </div>
+</form>
 
-
-  </form>
-  <p><br><br><br>If you don't have an account please <a href="/signup">Sign Up</a></p>
-
-
-
+<!-- Link to signup page -->
+<p><br><br><br>If you don't have an account please <a href="/signup">Sign Up</a></p>
 {% endblock %}
