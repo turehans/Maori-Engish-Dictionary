@@ -51,17 +51,25 @@ def create_connection(db_file):
     Notes:
         - Enables foreign key constraints by setting the PRAGMA foreign_keys
         to ON.
-        - Prints the error message to the console if a connection error occurs.
+        - Logs detailed error messages if a connection error occurs.
     """
+    connection = None
     try:
         # Attempt to connect to the SQLite database
         connection = sqlite3.Connection(db_file)
         # Enable foreign key constraints for referential integrity
         connection.execute("PRAGMA foreign_keys = ON")
         return connection
-    except sqlite3.Error as e:
-        # Print the error message if the connection fails
-        print(e)
+    except sqlite3.OperationalError as e:
+        print(f"OperationalError: Unable to connect to the database at {db_file}. Error: {e}")
+    except sqlite3.DatabaseError as e:
+        print(f"DatabaseError: An issue occurred with the database at {db_file}. Error: {e}")
+    except Exception as e:
+        print(f"UnexpectedError: An unexpected error occurred. Error: {e}")
+    finally:
+        if connection:
+            connection.close()
+            print("Database connection closed due to an error.")
     return None
 
 
