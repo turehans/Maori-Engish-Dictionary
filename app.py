@@ -264,7 +264,7 @@ def render_dictionary():
     query = """
     SELECT id, maori, english, definition, level
     FROM Vocab_List
-    WHERE cat_id=?
+    WHERE cat_id = ?
     """
     cur = con.cursor()
     cur.execute(query, (cat_id,))
@@ -313,7 +313,7 @@ def render_word():
     SELECT Vocab_List.*, Users.username AS author_name
     FROM Vocab_List
     JOIN Users ON Vocab_List.author_id = Users.id
-    WHERE Vocab_List.id=?
+    WHERE Vocab_List.id = ?
     """
     cur = con.cursor()
     cur.execute(query, (word_id,))
