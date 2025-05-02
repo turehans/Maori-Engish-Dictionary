@@ -1,20 +1,23 @@
 """
-This is a Flask-based web application for a Maori-English dictionary. 
+This is a Flask-based web application for a Maori-English dictionary.
 The application allows users to:
 - View a list of Maori words and their English translations.
 - View detailed information about specific words.
 - Sign up and log in to the application.
 - Teachers can add, modify, and delete words or categories in the dictionary.
 
-The application uses SQLite as the database and bcrypt for secure password hashing.
-It also includes role-based access control to differentiate between regular users and teachers.
+The application uses SQLite as the database and bcrypt
+for secure password hashing.
+It also includes role-based access control to differentiate
+between regular users and teachers.
 """
 
+import sqlite3  # Standard library imports should come first
+from datetime import date  # Standard library imports should come first
 from flask import Flask, render_template, request, redirect, session, flash
-import sqlite3
+# Third-party imports should follow standard imports
 from flask_bcrypt import Bcrypt
-from datetime import date
-from werkzeug.utils import escape  # Import escape for sanitizing inputs
+from werkzeug.utils import escape
 
 # Initialize the Flask application
 # Flask is a lightweight WSGI web application framework in Python
@@ -64,16 +67,19 @@ def create_connection(db_file):
 
 def is_logged_in():
     """
-    Checks if a user is logged in by verifying the presence of an email in the session.
+    Checks if a user is logged in by verifying
+    the presence of an email in the session.
 
     Returns:
-        bool: True if the user is logged in (email exists in the session),
+        bool: True if the user is logged in
+        (email exists in the session),
         False otherwise.
 
     Notes:
         - The session is a dictionary-like object that stores data for the
           current user session.
-        - If the "email" key exists in the session, the user is considered logged in.
+        - If the "email" key exists in the session, the user
+        is considered logged in.
     """
     if session.get("email") is None:
         # If no email is found in the session, the user is not logged in
@@ -86,7 +92,8 @@ def is_logged_in():
 
 def check_if_teacher():
     """
-    Checks if the current user has a role ID of 1, indicating they are a teacher.
+    Checks if the current user has a role ID of 1,
+    indicating they are a teacher.
 
     Returns:
         bool: True if the user's role ID is 1 (teacher), False otherwise.
@@ -106,23 +113,30 @@ def check_if_teacher():
 @app.context_processor
 def inject_list():
     """
-    Injects variables into the Jinja2 template context for use in rendering templates.
+    Injects variables into the Jinja2 template context
+    for use in rendering templates.
 
     This context processor performs the following:
-    1. Connects to the database and retrieves all categories from the
+    1. Connects to the database and retrieves all
+    categories from the
        `Categories` table.
     2. Checks if the current user is logged in.
     3. Determines if the current user is a teacher.
 
     Returns:
         dict: A dictionary containing:
-            - `categories` (list): A list of categories fetched from the database.
-            - `logged_in` (bool): A flag indicating whether the user is logged in.
-            - `teacher` (bool): A flag indicating whether the user is a teacher.
+            - `categories` (list): A list of categories
+            fetched from the database.
+            - `logged_in` (bool): A flag indicating whether
+            the user is logged in.
+            - `teacher` (bool): A flag indicating whether
+            the user is a teacher.
 
     Notes:
-        - The returned dictionary is available in all Jinja2 templates.
-        - This allows templates to dynamically display content based on the user's
+        - The returned dictionary is available in all
+        Jinja2 templates.
+        - This allows templates to dynamically display
+        content based on the user's
           login status and role.
     """
     # Connect to the database
@@ -140,11 +154,11 @@ def inject_list():
     is_teacher = check_if_teacher()
 
     # Return a dictionary with categories, login status, and teacher status
-    return dict(
-        categories=category_list,
-        logged_in=is_logged_in(),
-        teacher=is_teacher
-    )
+    return {
+        "categories": category_list,
+        "logged_in": is_logged_in(),
+        "teacher": is_teacher,
+    }
 
 
 @app.route('/')
@@ -169,7 +183,8 @@ def validate_integer(value, field_name):
 
     Args:
         value (str): The input value to validate.
-        field_name (str): The name of the field being validated (for error messages).
+        field_name (str): The name of the field
+        being validated (for error messages).
 
     Returns:
         int: The validated integer value.
@@ -179,29 +194,37 @@ def validate_integer(value, field_name):
     """
     try:
         return int(value)
-    except ValueError:
-        raise ValueError(f"Invalid input for {field_name}: Must be an integer.")
+    except ValueError as exc:
+        raise ValueError(
+            f"Invalid input for {field_name}: Must be an integer."
+        ) from exc
 
 
 def validate_string(value, field_name, max_length=255):
     """
-    Validates that the input value is a string and does not exceed the maximum length.
+    Validates that the input value is a string
+    and does not exceed the maximum length.
 
     Args:
         value (str): The input value to validate.
-        field_name (str): The name of the field being validated (for error messages).
-        max_length (int): The maximum allowed length for the string.
+        field_name (str): The name of the field
+        being validated (for error messages).
+        max_length (int): The maximum allowed
+        length for the string.
 
     Returns:
         str: The validated string value.
 
     Raises:
-        ValueError: If the value is not a valid string or exceeds the maximum length.
+        ValueError: If the value is not a valid
+        string or exceeds the maximum length.
     """
     if not isinstance(value, str):
         raise ValueError(f"Invalid input for {field_name}: Must be a string.")
     if len(value) > max_length:
-        raise ValueError(f"Invalid input for {field_name}: Exceeds maximum length of {max_length}.")
+        raise ValueError(
+            f"Invalid input: {field_name}: Exceeds max length: {max_length}."
+        )
     return value.strip()
 
 
@@ -211,14 +234,16 @@ def render_dictionary():
     Renders the dictionary page with a list of words filtered by category ID.
 
     This function retrieves the `cat_id` parameter from the request arguments,
-    queries the database for vocabulary words associated with the given category ID,
+    queries the database for vocabulary words associated
+    with the given category ID,
     and renders the 'dictionary.html' template with the retrieved words.
 
     Returns:
         str: Rendered HTML template for the dictionary page.
 
     Notes:
-        - The `cat_id` parameter is expected to be passed as a query string argument.
+        - The `cat_id` parameter is expected to be passed
+        as a query string argument.
         - The database connection is closed after the query execution.
         - The `words_list` contains tuples with the following structure:
           (id, maori, english, definition, level).
@@ -257,7 +282,8 @@ def render_word():
 
     This function retrieves the word information from the database, including
     details from the `Vocab_List` table and the author's username from the
-    `Users` table. The retrieved data is then passed to the 'word.html' template
+    `Users` table. The retrieved data is then passed to the 'word.html'
+    template
     for rendering.
 
     Returns:
@@ -266,7 +292,8 @@ def render_word():
     Notes:
         - The function establishes a connection to the database using
           `create_connection`.
-        - The SQL query joins the `Vocab_List` and `Users` tables to fetch the
+        - The SQL query joins the `Vocab_List` and `Users` tables to
+        fetch the
           word details along with the author's username.
         - The database connection is closed after the query execution.
     """
@@ -302,16 +329,21 @@ def modify_word():
     """
     Handles the modification of a word in the vocabulary list.
 
-    This function allows a teacher to update the details of a word in the database.
-    It checks if the user is logged in as a teacher, processes the form data from
+    This function allows a teacher to update the details of a word
+    in the database.
+    It checks if the user is logged in as a teacher, processes the
+    form data from
     a POST request, and updates the corresponding word in the database.
 
     Returns:
-        - A redirect to a message page if the user is not logged in as a teacher.
-        - A redirect to the updated word's detail page after successful modification.
+        - A redirect to a message page if the user is not logged in
+        as a teacher.
+        - A redirect to the updated word's detail page after successful
+        modification.
 
     Request Parameters:
-        - word_id (str): The ID of the word to be modified (retrieved from query parameters).
+        - word_id (str): The ID of the word to be modified
+        (retrieved from query parameters).
 
     Form Data:
         - english (str): The updated English translation of the word.
@@ -319,7 +351,8 @@ def modify_word():
         - level (str): The updated difficulty level of the word.
 
     Database:
-        Updates the `Vocab_List` table with the new values for the specified word ID.
+        Updates the `Vocab_List` table with the new values for
+        the specified word ID.
     """
     # Ensure the user is a teacher
     if not check_if_teacher():
@@ -329,8 +362,12 @@ def modify_word():
         word_id = request.args.get("word_id")
         try:
             word_id = validate_integer(word_id, "Word ID")
-            english = validate_string(request.form.get("english"), "English Translation")
-            definition = validate_string(request.form.get("definition"), "Definition")
+            english = validate_string(
+                request.form.get("english"), "English Translation"
+            )
+            definition = validate_string(
+                request.form.get("definition"), "Definition"
+            )
             level = validate_integer(request.form.get("level"), "Level")
         except ValueError as e:
             flash(str(e), "error")  # Flash error message
@@ -361,7 +398,8 @@ def render_signup():
     """
     Handles the signup process for new users.
 
-    This function renders the signup page and processes user input to create a new account.
+    This function renders the signup page and processes
+    user input to create a new account.
     It performs the following tasks:
     - Redirects logged-in users to the home page.
     - Fetches the list of roles from the database to populate the signup form.
@@ -373,9 +411,11 @@ def render_signup():
 
     Returns:
         - A redirect to the home page if the user is already logged in.
-        - A redirect to the signup page with an error message if validation fails.
+        - A redirect to the signup page with an error message
+        if validation fails.
         - A redirect to the login page upon successful signup.
-        - The rendered signup page with a list of roles if the request method is GET.
+        - The rendered signup page with a list of roles if the
+        request method is GET.
     """
     if is_logged_in():
         # If the user is already logged in, redirect them to the home page
@@ -397,40 +437,37 @@ def render_signup():
     if request.method == 'POST':
         try:
             # Validate and sanitize inputs
-            fname = validate_string(request.form.get('fname').title(), "First Name")
-            lname = validate_string(request.form.get('lname').title(), "Last Name")
-            email = validate_string(request.form.get('email').lower(), "Email")
-            username = validate_string(request.form.get('username'), "Username")
-            password = validate_string(request.form.get('password'), "Password", max_length=128)
-            password2 = validate_string(request.form.get('password2'), "Password Confirmation", max_length=128)
+            fname = validate_string(
+                request.form.get('fname').title(), "First Name"
+            )
+            lname = validate_string(
+                request.form.get('lname').title(), "Last Name"
+            )
+            email = validate_string(
+                request.form.get('email').lower(), "Email"
+            )
+            username = validate_string(
+                request.form.get('username'), "Username"
+            )
+            password = validate_string(
+                request.form.get('password'), "Password", max_length=128
+            )
+            password2 = validate_string(
+                request.form.get('password2'),
+                "Password Confirmation", max_length=128
+            )
             role_id = validate_integer(request.form.get('role'), "Role ID")
             if password != password2:
                 raise ValueError("Passwords do not match.")
             if len(password) < 8:
-                raise ValueError("Password is too short. Must be at least 8 characters.")
+                raise ValueError(
+                    "Password is too short. Must be at least 8 characters."
+                )
         except ValueError as e:
             flash(str(e), "error")  # Flash error message
             return redirect('/signup')
         # If the request method is POST, process the form data
         print(request.form)
-        # Retrieve and sanitize form inputs
-        fname = escape(request.form.get('fname').title().strip())  # First name
-        lname = escape(request.form.get('lname').title().strip())  # Last name
-        email = escape(request.form.get('email').lower().strip())  # Email address
-        username = escape(request.form.get('username').strip())  # Username
-        password = escape(request.form.get('password').strip())  # Password
-        password2 = escape(request.form.get('password2').strip())  # Confirm password
-        role_id = escape(request.form.get('role').lower().strip())  # Role ID
-
-        # Validate that the passwords match
-        if password != password2:
-            # Redirect back to the signup page with an error message
-            return redirect("/signup?error=Passwords+do+not+match")
-
-        # Validate that the password length is at least 8 characters
-        if len(password) < 8:
-            # Redirect back to the signup page with an error message
-            return redirect("/signup?error=Password+is+too+short")
 
         # Hash the password using bcrypt for secure storage
         hashed_password = bcrypt.generate_password_hash(password)
@@ -447,7 +484,11 @@ def render_signup():
 
         try:
             # Execute the query with the provided user data
-            cur.execute(query2, (username, email, hashed_password, fname, lname, role_id))
+            cur.execute(
+                query2, (
+                    username, email, hashed_password, fname, lname, role_id
+                )
+            )
         except sqlite3.IntegrityError:
             # Handle duplicate email error
             con.close()
@@ -457,8 +498,8 @@ def render_signup():
         # Commit the changes to the database
         con.commit()
         con.close()
-
-        flash("Signup successful! Please log in.", "success")  # Flash success message
+        # Flash success message
+        flash("Signup successful! Please log in.", "success")
         return redirect("/login")
 
     # Render the signup.html template with the list of roles
@@ -477,20 +518,28 @@ def render_login():
     1. Retrieves and sanitizes the email and password from the login form.
     2. Queries the database for user information based on the provided email.
     3. Validates the provided password against the stored hashed password.
-    4. If authentication is successful, stores user details in the session and redirects to the home page.
-    5. If authentication fails, redirects back to the login page with an error message.
+    4. If authentication is successful, stores user details in the session
+        and redirects to the home page.
+    5. If authentication fails, redirects back to the login page
+    with an error message.
 
     Returns:
-        - Redirect to the home page if the user is logged in or login is successful.
-        - Redirect to the login page with an error message if authentication fails.
+        - Redirect to the home page if the user is logged in
+        or login is successful.
+        - Redirect to the login page with an error message
+        if authentication fails.
         - Renders the login page if the request method is not POST.
 
     Raises:
-        - IndexError: If the user data fetched from the database is incomplete or invalid.
+        - IndexError: If the user data fetched from the database
+        is incomplete or invalid.
 
     Note:
-        - The function uses bcrypt for password hashing and Flask's session for user session management.
-        - Ensure the `create_connection` function and `DATABASE` constant are properly defined elsewhere in the application.
+        - The function uses bcrypt for password hashing and Flask's session
+        for user session management.
+        - Ensure the `create_connection` function and `DATABASE` constant
+        are properly defined elsewhere
+        in the application.
     """
     if is_logged_in():
         # If the user is already logged in, redirect them to the home page
@@ -498,8 +547,10 @@ def render_login():
 
     if request.method == "POST":
         # If the request method is POST, process the login form data
-        email = request.form['email'].strip().lower()  # Retrieve and sanitize email
-        password = request.form['password'].strip()  # Retrieve and sanitize password
+        # Retrieve and sanitize email
+        email = request.form['email'].strip().lower()
+        # Retrieve and sanitize password
+        password = request.form['password'].strip()
 
         # SQL query to fetch user data based on the provided email
         query = """
@@ -511,7 +562,7 @@ def render_login():
         cur.execute(query, (email,))
         # Fetch the user data from the query result
         user_data = cur.fetchone()
-        con.close
+        con.close()
 
         try:
             # Extract user details from the query result
@@ -521,12 +572,15 @@ def render_login():
             db_password = user_data[3]
             role_id = user_data[4]
         except (IndexError, TypeError):
-            flash("Invalid username or password.", "error")  # Flash error message
+            # Flash error message
+            flash("Invalid username or password.", "error")
             return redirect("/login")
 
-        # Validate the provided password against the hashed password in the database
+        # Validate the provided password against
+        # the hashed password in the database
         if not bcrypt.check_password_hash(db_password, password):
-            flash("Invalid username or password.", "error")  # Flash error message
+            # Flash error message
+            flash("Invalid username or password.", "error")
             return redirect("/login")
 
         # Store user details in the session for authentication
@@ -546,26 +600,31 @@ def render_login():
 
 @app.route('/logout')
 def logout():
-    """
-    Logs the user out by clearing all session data and redirects to the home page with a farewell message.
+    """ # Flash error message
+    Logs the user out by clearing all session data and redirects to the
+    home page with a farewell message.
 
     This function performs the following steps:
     1. Prints the current session keys for debugging purposes.
     2. Iterates through all session keys and removes them from the session.
     3. Prints the session keys again to confirm the session is cleared.
-    4. Redirects the user to the home page with a message indicating a successful logout.
+    4. Redirects the user to the home page with a message
+    indicating a successful logout.
 
     Returns:
-        werkzeug.wrappers.response.Response: A redirect response to the home page with a query parameter message.
+        werkzeug.wrappers.response.Response: A redirect response to the
+        home page with a query parameter message.
     """
     # Print the current session keys for debugging purposes
     print(list(session.keys()))
     # Iterate through all session keys and remove them from the session
-    [session.pop(key) for key in list(session.keys())]
+    for key in list(session.keys()):
+        session.pop(key)
     # Print the session keys again to confirm the session is cleared
     print(list(session.keys()))
+    flash("You have been logged out.", "success")
     # Redirect the user to the home page with a farewell message
-    return redirect('/?message=See+You+Next+Time}')
+    return redirect('/')
 
 
 @app.route('/admin/')
@@ -573,14 +632,18 @@ def render_admin():
     """
     Renders the admin page if the user is authenticated as a teacher.
 
-    This function checks if the user has teacher privileges. If not, it redirects
-    the user to the home page with an appropriate message. If the user is a teacher,
-    it retrieves a list of categories from the database and renders the admin page
+    This function checks if the user has teacher privileges.
+    If not, it redirects
+    the user to the home page with an appropriate message.
+    If the user is a teacher,
+    it retrieves a list of categories from the database
+    and renders the admin page
     with the retrieved data.
 
     Returns:
         Response: A redirect to the home page if the user is not a teacher.
-        TemplateResponse: The rendered admin page with the list of categories if the user is a teacher.
+        TemplateResponse: The rendered admin page with the list of categories
+        if the user is a teacher.
     """
     # Check if the user is a teacher
     if check_if_teacher() is False:
@@ -612,7 +675,8 @@ def add_category():
     processes it, and inserts it into the Categories table in the database.
 
     Returns:
-        - A redirect to the home page with a message if the user is not a teacher.
+        - A redirect to the home page with a message if the user is
+        not a teacher.
         - A redirect to the admin page after successfully adding the category.
     """
     # Check if the user is a teacher
@@ -647,7 +711,8 @@ def add_word():
     This function checks if the user is logged in as a teacher before allowing
     the addition of a new word. It processes a POST request containing the
     details of the word to be added, including its Maori and English
-    translations, definition, level, and associated category. The word is then
+    translations, definition, level, and associated category.
+    The word is  # Flash error messagethen
     inserted into the database along with metadata such as the author's ID and
     the date of entry.
 
@@ -668,7 +733,8 @@ def add_word():
         - user_id (int): The ID of the currently logged-in user.
 
     Database:
-        Inserts a new record into the `Vocab_List` table with the following fields:
+        Inserts a new record into the `Vocab_List`
+        table with the following fields:
         - maori
         - english
         - cat_id
@@ -683,29 +749,28 @@ def add_word():
         # Redirect to the home page with a message if the user is not a teacher
         return redirect('/?message=Need+To+Be+Logged+in')
     if request.method == 'POST':
-        try:
+        try:  # Flash error message
             # Validate and sanitize inputs
-            maori = validate_string(request.form.get('maori').lower(), "Maori Word")
-            english = validate_string(request.form.get('english').lower(), "English Translation")
-            definition = validate_string(request.form.get('definition'), "Definition")
+            maori = validate_string(
+                request.form.get('maori').lower(), "Maori Word"
+            )
+            english = validate_string(request.form.get('english').lower(),
+                                      "English Translation")
+            definition = validate_string(
+                request.form.get('definition'), "Definition"
+            )
             level = validate_integer(request.form.get('level'), "Level")
             cat_id = validate_integer(request.args.get('id'), "Category ID")
         except ValueError as e:
             flash(str(e), "error")  # Flash error message
-            return redirect(f'/dictionary/?cat_id={request.args.get("id")}')  # Redirect back to the dictionary page
+            # Redirect back to the dictionary page
+            return redirect(f'/dictionary/?cat_id={request.args.get("id")}')
         # If the request method is POST, process the form data
 
         # Get the current date and format it as a string
         today = date.today()
         today = today.strftime("%Y.%m.%d")
 
-        # Retrieve and sanitize the word details from the form data
-        maori = request.form.get('maori').lower().strip()  # Maori word
-        english = request.form.get('english').lower()  # English translation
-        definition = request.form.get('definition')  # Definition
-        level = request.form.get('level').lower().strip()  # Difficulty level
-        cat_id = request.args.get('id')  # Category ID from query parameters
-        print(f"cat_id is {cat_id}")
         image = "noimage"  # Default image name
         author_id = session.get("user_id")  # Author ID from session
         date_of_entry = today  # Date of entry
@@ -736,10 +801,12 @@ def delete_from_category():
     """
     Handles the deletion of an item from a specified category.
 
-    This function checks if the user is a teacher before proceeding. If the user
+    This function checks if the user is a teacher before proceeding.
+    If the user
     is not logged in as a teacher, they are redirected to the home page with an
     appropriate message. If the request method is POST, it retrieves the table
-    name and item ID from the request, and renders a confirmation page for deletion.
+    name and item ID from the request,
+    and renders a confirmation page for deletion.
     Otherwise, it redirects to the admin page.
 
     Returns:
@@ -756,16 +823,12 @@ def delete_from_category():
         try:
             # Validate and sanitize inputs
             table = validate_string(request.args.get('table'), "Table Name")
-            id = validate_integer(request.form.get('id'), "ID")
+            item_id = validate_integer(request.form.get('id'), "ID")
         except ValueError as e:
             flash(str(e), "error")  # Flash error message
             return redirect('/admin')
-        # If the request method is POST, process the form data
-        # Sanitize inputs
-        table = escape(request.args.get('table'))
-        id = escape(request.form.get('id').lower().strip())
         # Render the delete confirmation page with the table name and item ID
-        return render_template("delete_confirm.html", id=id, table=table)
+        return render_template("delete_confirm.html", id=item_id, table=table)
     # Redirect to the admin page for other cases
     return redirect('/admin')
 
@@ -775,27 +838,28 @@ def confirm_delete():
     """
     Handles the deletion of a record from a specified table in the database.
 
-    This function checks if the user is logged in as a teacher before proceeding.
+    This function checks if the user is logged in as a teacher
+    before proceeding.
     If the user is not authorized, they are redirected to the home page with an
-    appropriate message. If authorized, the function retrieves the table name and
+    appropriate message. If authorized, the function retrieves
+    the table name and
     record ID from the request arguments, deletes the corresponding record from
     the database, and then redirects to the home page.
 
     Returns:
-        werkzeug.wrappers.response.Response: A redirect response to the home page.
+        werkzeug.wrappers.response.Response:
+        A redirect response to the home page.
 
     Raises:
         sqlite3.Error: If there is an issue executing the SQL query.
 
     Notes:
-        - The function assumes the existence of a `check_if_teacher` function to
+        - The function assumes the existence of a `check_if_teacher`
+        function to
           verify user authorization.
         - The `create_connection` function is used to establish a connection to
           the database.
         - The `DATABASE` constant should point to the database file path.
-        - The `table` parameter is directly interpolated into the SQL query, which
-          may lead to SQL injection vulnerabilities. Consider using parameterized
-          queries or validating the table name to mitigate this risk.
     """
     # Check if the user is a teacher
     if check_if_teacher() is False:
@@ -808,10 +872,6 @@ def confirm_delete():
     except ValueError as e:
         flash(str(e), "error")  # Flash error message
         return redirect('/admin')
-    # Sanitize inputs
-    cat_id = escape(request.args.get('cat_id'))
-    table = escape(request.args.get('table'))
-    print(f"The table that we are deleting from is {table}")
 
     # Connect to the database
     con = create_connection(DATABASE)
