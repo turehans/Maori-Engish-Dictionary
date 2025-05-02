@@ -74,9 +74,6 @@ def create_connection(db_file):
         print(f"DatabaseError: An issue occurred with {db_file}. Error: {e}")
     except Exception as e:
         print(f"UnexpectedError: An unexpected error occurred. Error: {e}")
-    finally:
-        if connection:
-            connection.close()
     return None
 
 
@@ -97,7 +94,11 @@ def is_logged_in():
         is considered logged in.
     """
     if session.get("email") is None:
+        # If no email is found in the session, the user is not logged in
+        print("Not logged in")
         return False
+    # If an email is found in the session, the user is logged in
+    print("logged in")
     return True
 
 
@@ -107,6 +108,7 @@ def check_if_teacher():
     indicating they are a teacher.
     """
     if session.get("role_id") == TEACHER_ROLE_ID:
+        print(session)
         return True
     return False
 
@@ -148,6 +150,7 @@ def inject_list():
     cur.execute(query)
     # Fetch all rows from the query result
     category_list = cur.fetchall()
+    print(category_list)
     # Close the database connection
     con.close()
     # Check if the current user is a teacher
@@ -248,6 +251,7 @@ def render_dictionary():
     except ValueError as e:
         flash(str(e), "error")  # Flash error message
         return redirect('/')
+    print(f"cat_id = {cat_id}")
     # Connect to the database
     con = create_connection(DATABASE)
     # SQL query to fetch words by category ID
@@ -260,6 +264,7 @@ def render_dictionary():
     cur.execute(query, (cat_id,))
     # Fetch all rows from the query result
     words_list = cur.fetchall()
+    print(words_list)
     # Close the database connection
     con.close()
     # Render the dictionary.html template with the words and category ID
@@ -308,6 +313,7 @@ def render_word():
     cur.execute(query, (word_id,))
     # Fetch the first row from the query result
     word_info_list = cur.fetchone()
+    print(f"Word info = {word_info_list}")
     # Close the database connection
     con.close()
     # Render the word.html template with the word details and word ID
@@ -363,6 +369,7 @@ def modify_word():
         except ValueError as e:
             flash(str(e), "error")  # Flash error message
             return redirect(f"/word?word_id={word_id}")
+        print(f"word_id = {word_id}")
 
         # Connect to the database
         con = create_connection(DATABASE)
@@ -421,6 +428,7 @@ def render_signup():
     cur.execute(query1)
     # Fetch all roles from the query result
     role_list = cur.fetchall()
+    print(role_list)
     # Close the database connection
     con.close()
 
@@ -451,12 +459,13 @@ def render_signup():
                 raise ValueError("Passwords do not match.")
             if len(password) < PASSWORD_MIN_LENGTH:
                 raise ValueError(
-                    f"Password is less than {PASSWORD_MIN_LENGTH} characters."
+                    f"Password is too short. Must be at least {PASSWORD_MIN_LENGTH} characters."
                 )
         except ValueError as e:
             flash(str(e), "error")  # Flash error message
             return redirect('/signup')
         # If the request method is POST, process the form data
+        print(request.form)
 
         # Hash the password using bcrypt for secure storage
         hashed_password = bcrypt.generate_password_hash(password)
@@ -578,6 +587,7 @@ def render_login():
         session['first_name'] = first_name
         session['username'] = username
         session['role_id'] = role_id
+        print(session)
 
         flash("Login successful!", "success")  # Flash success message
         return redirect('/')
@@ -603,9 +613,13 @@ def logout():
         werkzeug.wrappers.response.Response: A redirect response to the
         home page with a query parameter message.
     """
+    # Print the current session keys for debugging purposes
+    print(list(session.keys()))
     # Iterate through all session keys and remove them from the session
     for key in list(session.keys()):
         session.pop(key)
+    # Print the session keys again to confirm the session is cleared
+    print(list(session.keys()))
     flash(LOGOUT_MESSAGE, "success")
     # Redirect the user to the home page with a farewell message
     return redirect('/')
@@ -668,8 +682,10 @@ def add_category():
         return redirect('/?message=Need+To+Be+Logged+in')
     if request.method == 'POST':
         # If the request method is POST, process the form data
+        print(request.form)
         # Retrieve and sanitize the category name from the form data
         cat_name = request.form.get('name').lower().strip()
+        print(cat_name)
         # Connect to the database
         con = create_connection(DATABASE)
         # SQL query to insert the new category into the Categories table
