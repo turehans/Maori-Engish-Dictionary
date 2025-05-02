@@ -36,6 +36,7 @@ Maōri - English Dictionary
 </table>
 
 <!-- Form for adding a new word -->
+{% if logged_in == True %}
 <h4>Add a word</h4>
 <form class="myform" method="POST" action="/add_word_to_database/?id={{ cat_id }}">
   <div class="form-group">
@@ -63,4 +64,5 @@ Maōri - English Dictionary
     <div class="form-element"><input type="submit" value="Add Word"></div>
   </div>
 </form>
+{% endif %}
 {% endblock %}

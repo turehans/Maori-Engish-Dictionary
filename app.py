@@ -165,15 +165,9 @@ def inject_list():
 def render_homepage():
     """
     Renders the homepage of the application.
-
-    Returns:
-        Response: The rendered HTML content for the homepage.
-
-    Notes:
-        - The homepage is the default route of the application.
-        - It displays general information about the application.
     """
-    # Render the home.html template
+    # Flash a welcome message if desired
+    flash("Welcome to the Maori-English Dictionary!", "success")
     return render_template('home.html')
 
 
@@ -356,7 +350,8 @@ def modify_word():
     """
     # Ensure the user is a teacher
     if not check_if_teacher():
-        return redirect("/message/Need+To+Be+Logged+In")
+        flash("You need to be a teacher to modify words.", "error")
+        return redirect("/?message=Need+To+Be+Logged+In")
     if request.method == "POST":
         # Validate and sanitize inputs
         word_id = request.args.get("word_id")
@@ -389,6 +384,7 @@ def modify_word():
         # Close the database connection
         con.close()
 
+    flash("Word modified successfully!", "success")
     # Redirect to the updated word's detail page
     return redirect(f"/word?word_id={word_id}")
 
@@ -681,7 +677,7 @@ def add_category():
     """
     # Check if the user is a teacher
     if check_if_teacher() is False:
-        # Redirect to the home page with a message if the user is not a teacher
+        flash("You need to be a teacher to add categories.", "error")
         return redirect('/?message=Need+To+Be+Logged+in')
     if request.method == 'POST':
         # If the request method is POST, process the form data
@@ -699,6 +695,7 @@ def add_category():
         con.commit()
         # Close the database connection
         con.close()
+    flash("Category added successfully!", "success")
     # Redirect to the admin page after successfully adding the category
     return redirect('/admin')
 
@@ -745,7 +742,7 @@ def add_word():
         - image (default: "noimage")
     """
     # Check if the user is a teacher
-    if check_if_teacher() is False:
+    if is_logged_in() is False:
         # Redirect to the home page with a message if the user is not a teacher
         return redirect('/?message=Need+To+Be+Logged+in')
     if request.method == 'POST':
@@ -817,7 +814,7 @@ def delete_from_category():
     """
     # Check if the user is a teacher
     if check_if_teacher() is False:
-        # Redirect to the home page with a message if the user is not a teacher
+        flash("You need to be a teacher to delete items.", "error")
         return redirect('/?message=Need+To+Be+Logged+in')
     if request.method == 'POST':
         try:
@@ -827,6 +824,7 @@ def delete_from_category():
         except ValueError as e:
             flash(str(e), "error")  # Flash error message
             return redirect('/admin')
+        flash("Item deletion confirmed. Proceed to delete.", "success")
         # Render the delete confirmation page with the table name and item ID
         return render_template("delete_confirm.html", id=item_id, table=table)
     # Redirect to the admin page for other cases
@@ -863,7 +861,7 @@ def confirm_delete():
     """
     # Check if the user is a teacher
     if check_if_teacher() is False:
-        # Redirect to the home page with a message if the user is not a teacher
+        flash("You need to be a teacher to confirm deletion.", "error")
         return redirect('/?message=Need+To+Be+Logged+In')
     try:
         # Validate and sanitize inputs
@@ -884,6 +882,7 @@ def confirm_delete():
     con.commit()
     # Close the database connection
     con.close()
+    flash("Item deleted successfully!", "success")
     # Redirect to the home page after successful deletion
     return redirect('/')
 
