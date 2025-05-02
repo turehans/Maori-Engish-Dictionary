@@ -35,6 +35,14 @@ app.secret_key = "6gctpxYDLDUe6d33vGD1P45mvzaKgMx9"
 # This database stores all the data for the application
 DATABASE = "/home/ture/Maori-Engish-Dictionary/dictionary.db"
 
+# Define constants for role IDs, messages, and validation
+TEACHER_ROLE_ID = "1"
+WELCOME_MESSAGE = "Welcome to the Maori-English Dictionary!"
+LOGOUT_MESSAGE = "You have been logged out."
+NEED_TEACHER_MESSAGE = "You need to be a teacher to perform this action."
+PASSWORD_MIN_LENGTH = 8
+MAX_STRING_LENGTH = 255  # Global variable for maximum string length
+
 
 def create_connection(db_file):
     """
@@ -61,9 +69,9 @@ def create_connection(db_file):
         connection.execute("PRAGMA foreign_keys = ON")
         return connection
     except sqlite3.OperationalError as e:
-        print(f"OperationalError: Unable to connect to the database at {db_file}. Error: {e}")
+        print(f"OperationalError: Unable to connect to {db_file}. Error: {e}")
     except sqlite3.DatabaseError as e:
-        print(f"DatabaseError: An issue occurred with the database at {db_file}. Error: {e}")
+        print(f"DatabaseError: An issue occurred with {db_file}. Error: {e}")
     except Exception as e:
         print(f"UnexpectedError: An unexpected error occurred. Error: {e}")
     finally:
@@ -100,21 +108,12 @@ def is_logged_in():
 
 def check_if_teacher():
     """
-    Checks if the current user has a role ID of 1,
+    Checks if the current user has a role ID of TEACHER_ROLE_ID,
     indicating they are a teacher.
-
-    Returns:
-        bool: True if the user's role ID is 1 (teacher), False otherwise.
-
-    Notes:
-        - The "role_id" key in the session indicates the user's role.
-        - A role ID of 1 corresponds to a teacher.
     """
-    if session.get("role_id") == str(1):
-        # If the role ID is 1, the user is a teacher
+    if session.get("role_id") == TEACHER_ROLE_ID:
         print(session)
         return True
-    # If the role ID is not 1, the user is not a teacher
     return False
 
 
@@ -174,8 +173,7 @@ def render_homepage():
     """
     Renders the homepage of the application.
     """
-    # Flash a welcome message if desired
-    flash("Welcome to the Maori-English Dictionary!", "success")
+    flash(WELCOME_MESSAGE, "success")
     return render_template('home.html')
 
 
@@ -202,7 +200,7 @@ def validate_integer(value, field_name):
         ) from exc
 
 
-def validate_string(value, field_name, max_length=255):
+def validate_string(value, field_name, max_length=MAX_STRING_LENGTH):
     """
     Validates that the input value is a string
     and does not exceed the maximum length.
@@ -454,18 +452,18 @@ def render_signup():
                 request.form.get('username'), "Username"
             )
             password = validate_string(
-                request.form.get('password'), "Password", max_length=128
+                request.form.get('password'), "Password"
             )
             password2 = validate_string(
                 request.form.get('password2'),
-                "Password Confirmation", max_length=128
+                "Password Confirmation"
             )
             role_id = validate_integer(request.form.get('role'), "Role ID")
             if password != password2:
                 raise ValueError("Passwords do not match.")
-            if len(password) < 8:
+            if len(password) < PASSWORD_MIN_LENGTH:
                 raise ValueError(
-                    "Password is too short. Must be at least 8 characters."
+                    f"Password is less than {PASSWORD_MIN_LENGTH} characters."
                 )
         except ValueError as e:
             flash(str(e), "error")  # Flash error message
@@ -626,7 +624,7 @@ def logout():
         session.pop(key)
     # Print the session keys again to confirm the session is cleared
     print(list(session.keys()))
-    flash("You have been logged out.", "success")
+    flash(LOGOUT_MESSAGE, "success")
     # Redirect the user to the home page with a farewell message
     return redirect('/')
 
@@ -683,9 +681,8 @@ def add_category():
         not a teacher.
         - A redirect to the admin page after successfully adding the category.
     """
-    # Check if the user is a teacher
-    if check_if_teacher() is False:
-        flash("You need to be a teacher to add categories.", "error")
+    if not check_if_teacher():
+        flash(NEED_TEACHER_MESSAGE, "error")
         return redirect('/?message=Need+To+Be+Logged+in')
     if request.method == 'POST':
         # If the request method is POST, process the form data
@@ -749,9 +746,8 @@ def add_word():
         - level
         - image (default: "noimage")
     """
-    # Check if the user is a teacher
-    if is_logged_in() is False:
-        # Redirect to the home page with a message if the user is not a teacher
+    if not check_if_teacher():
+        flash(NEED_TEACHER_MESSAGE, "error")
         return redirect('/?message=Need+To+Be+Logged+in')
     if request.method == 'POST':
         try:  # Flash error message
