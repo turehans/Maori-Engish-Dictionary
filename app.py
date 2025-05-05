@@ -43,6 +43,21 @@ NEED_TEACHER_MESSAGE = "You need to be a teacher to perform this action."
 PASSWORD_MIN_LENGTH = 8
 MAX_STRING_LENGTH = 255  # Global variable for maximum string length
 
+# Define a global dictionary for field-specific maximum lengths
+FIELD_MAX_LENGTHS = {
+    "First Name": 30,
+    "Last Name": 30,
+    "Email": 120,
+    "Username": 30,
+    "Password": 255,
+    "Password Confirmation": 255,
+    "Maori Word": 30,
+    "English Translation": 30,
+    "Definition": 300,
+    "Category Name": 50,
+    "Table Name": 30,
+}
+
 
 def create_connection(db_file):
     """
@@ -190,17 +205,15 @@ def validate_integer(value, field_name):
         ) from exc
 
 
-def validate_string(value, field_name, max_length=MAX_STRING_LENGTH):
+def validate_string(value, field_name):
     """
     Validates that the input value is a string
-    and does not exceed the maximum length.
+    and does not exceed the maximum length defined in FIELD_MAX_LENGTHS.
 
     Args:
         value (str): The input value to validate.
         field_name (str): The name of the field
         being validated (for error messages).
-        max_length (int): The maximum allowed
-        length for the string.
 
     Returns:
         str: The validated string value.
@@ -209,6 +222,7 @@ def validate_string(value, field_name, max_length=MAX_STRING_LENGTH):
         ValueError: If the value is not a valid
         string or exceeds the maximum length.
     """
+    max_length = FIELD_MAX_LENGTHS.get(field_name, MAX_STRING_LENGTH)
     if not isinstance(value, str):
         raise ValueError(f"Invalid input for {field_name}: Must be a string.")
     if len(value) > max_length:
@@ -424,25 +438,12 @@ def render_signup():
     if request.method == 'POST':
         try:
             # Validate and sanitize inputs
-            fname = validate_string(
-                request.form.get('fname').title(), "First Name", max_length=30
-            )
-            lname = validate_string(
-                request.form.get('lname').title(), "Last Name", max_length=30
-            )
-            email = validate_string(
-                request.form.get('email').lower(), "Email", max_length=120
-            )
-            username = validate_string(
-                request.form.get('username'), "Username", max_length=30
-            )
-            password = validate_string(
-                request.form.get('password'), "Password", max_length=255
-            )
-            password2 = validate_string(
-                request.form.get('password2'),
-                "Password Confirmation", max_length=255
-            )
+            fname = validate_string(request.form.get('fname').title(), "First Name")
+            lname = validate_string(request.form.get('lname').title(), "Last Name")
+            email = validate_string(request.form.get('email').lower(), "Email")
+            username = validate_string(request.form.get('username'), "Username")
+            password = validate_string(request.form.get('password'), "Password")
+            password2 = validate_string(request.form.get('password2'), "Password Confirmation")
             role_id = validate_integer(request.form.get('role'), "Role ID")
             if password != password2:
                 raise ValueError("Passwords do not match.")
@@ -534,13 +535,9 @@ def render_login():
     if request.method == "POST":
         try:
             # Validate and sanitize email
-            email = validate_string(
-                request.form.get('email').strip().lower(), "Email", max_length=120
-            )
+            email = validate_string(request.form.get('email').strip().lower(), "Email")
             # Validate and sanitize password
-            password = validate_string(
-                request.form.get('password').strip(), "Password", max_length=255
-            )
+            password = validate_string(request.form.get('password').strip(), "Password")
         except ValueError as e:
             flash(str(e), "error")  # Flash error message
             return redirect("/login")
@@ -673,9 +670,7 @@ def add_category():
     if request.method == 'POST':
         try:
             # Validate and sanitize the category name
-            cat_name = validate_string(
-                request.form.get('name').lower().strip(), "Category Name", max_length=50
-            )
+            cat_name = validate_string(request.form.get('name').lower().strip(), "Category Name")
         except ValueError as e:
             flash(str(e), "error")  # Flash error message
             return redirect('/admin')
@@ -742,14 +737,9 @@ def add_word():
     if request.method == 'POST':
         try:  # Flash error message
             # Validate and sanitize inputs
-            maori = validate_string(
-                request.form.get('maori').lower(), "Maori Word", max_length=30
-            )
-            english = validate_string(request.form.get('english').lower(),
-                                      "English Translation", max_length=30)
-            definition = validate_string(
-                request.form.get('definition'), "Definition", max_length=300
-            )
+            maori = validate_string(request.form.get('maori').lower(), "Maori Word")
+            english = validate_string(request.form.get('english').lower(), "English Translation")
+            definition = validate_string(request.form.get('definition'), "Definition")
             level = validate_integer(request.form.get('level'), "Level")
             cat_id = validate_integer(request.args.get('id'), "Category ID")
         except ValueError as e:
@@ -860,7 +850,7 @@ def confirm_delete():
     try:
         # Validate and sanitize inputs
         cat_id = validate_integer(request.args.get('cat_id'), "Category ID")
-        table = validate_string(request.args.get('table'), "Table Name", max_length=30)
+        table = validate_string(request.args.get('table'), "Table Name")
     except ValueError as e:
         flash(str(e), "error")  # Flash error message
         return redirect('/admin')
