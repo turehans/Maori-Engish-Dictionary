@@ -532,11 +532,14 @@ def render_login():
         return redirect('/')
 
     if request.method == "POST":
-        # If the request method is POST, process the login form data
-        # Retrieve and sanitize email
-        email = request.form['email'].strip().lower()
-        # Retrieve and sanitize password
-        password = request.form['password'].strip()
+        try:
+            # Validate and sanitize email
+            email = validate_string(request.form.get('email').strip().lower(), "Email")
+            # Validate and sanitize password
+            password = validate_string(request.form.get('password').strip(), "Password")
+        except ValueError as e:
+            flash(str(e), "error")  # Flash error message
+            return redirect("/login")
 
         # SQL query to fetch user data based on the provided email
         query = """
@@ -664,9 +667,13 @@ def add_category():
         flash(NEED_TEACHER_MESSAGE, "error")
         return redirect('/?message=Need+To+Be+Logged+in')
     if request.method == 'POST':
-        # If the request method is POST, process the form data
-        # Retrieve and sanitize the category name from the form data
-        cat_name = request.form.get('name').lower().strip()
+        try:
+            # Validate and sanitize the category name
+            cat_name = validate_string(request.form.get('name').lower().strip(), "Category Name")
+        except ValueError as e:
+            flash(str(e), "error")  # Flash error message
+            return redirect('/admin')
+
         # Connect to the database
         con = create_connection(DATABASE)
         # SQL query to insert the new category into the Categories table
