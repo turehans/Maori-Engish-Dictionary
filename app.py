@@ -213,7 +213,7 @@ def validate_integer(value, field_name):
 
     if max_size is None:
         return int(value)
-    elif len(value) > max_size:
+    elif value > max_size:
         raise ValueError(
                 f"Invalid input for {field_name}: Exceeds length of {max_size}"
                 )
