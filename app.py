@@ -58,6 +58,11 @@ FIELD_MAX_LENGTHS = {
     "Table Name": 30,
 }
 
+FIELD_MAX_INT = {
+        "Level": 10,
+        "Role ID": 2,
+}
+
 
 def create_connection(db_file):
     """
@@ -197,12 +202,22 @@ def validate_integer(value, field_name):
     Raises:
         ValueError: If the value is not a valid integer.
     """
+    max_size = FIELD_MAX_INT.get(field_name)
+
     try:
-        return int(value)
-    except ValueError as exc:
+        int_value = int(value)
+    except (ValueError, TypeError):
         raise ValueError(
-            f"Invalid input for {field_name}: Must be an integer."
-        ) from exc
+                f"Invalid input for {field_name}, must be an integer"
+                )
+
+    if max_size is None:
+        return int(value)
+    elif len(value) > max_size:
+        raise ValueError(
+                f"Invalid input for {field_name}: Exceeds length of {max_size}"
+                )
+    return int_value
 
 
 def validate_string(value, field_name):
