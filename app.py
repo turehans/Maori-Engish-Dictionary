@@ -227,7 +227,7 @@ def validate_string(value, field_name):
         raise ValueError(f"Invalid input for {field_name}: Must be a string.")
     if len(value) > max_length:
         raise ValueError(
-            f"Invalid input for {field_name}: Exceeds max length of {max_length}."
+            f"Invalid input for {field_name}: Exceeds length of {max_length}."
         )
     return value.strip()
 
@@ -365,10 +365,10 @@ def modify_word():
         try:
             word_id = validate_integer(word_id, "Word ID")
             english = validate_string(
-                request.form.get("english"), "English Translation", max_length=30
+                request.form.get("english"), "English Translation"
             )
             definition = validate_string(
-                request.form.get("definition"), "Definition", max_length=300
+                request.form.get("definition"), "Definition"
             )
             level = validate_integer(request.form.get("level"), "Level")
         except ValueError as e:
@@ -438,18 +438,28 @@ def render_signup():
     if request.method == 'POST':
         try:
             # Validate and sanitize inputs
-            fname = validate_string(request.form.get('fname').title(), "First Name")
-            lname = validate_string(request.form.get('lname').title(), "Last Name")
+            fname = validate_string(
+                    request.form.get('fname').title(), "First Name"
+                    )
+            lname = validate_string(
+                    request.form.get('lname').title(), "Last Name"
+                    )
             email = validate_string(request.form.get('email').lower(), "Email")
-            username = validate_string(request.form.get('username'), "Username")
-            password = validate_string(request.form.get('password'), "Password")
-            password2 = validate_string(request.form.get('password2'), "Password Confirmation")
+            username = validate_string(
+                    request.form.get('username'), "Username"
+                    )
+            password = validate_string(
+                    request.form.get('password'), "Password"
+                    )
+            password2 = validate_string(
+                    request.form.get('password2'), "Password Confirmation"
+                    )
             role_id = validate_integer(request.form.get('role'), "Role ID")
             if password != password2:
                 raise ValueError("Passwords do not match.")
             if len(password) < PASSWORD_MIN_LENGTH:
                 raise ValueError(
-                    f"Password is too short. Must be at least {PASSWORD_MIN_LENGTH} characters."
+                    f"Password must be over {PASSWORD_MIN_LENGTH} characters."
                 )
         except ValueError as e:
             flash(str(e), "error")  # Flash error message
@@ -535,9 +545,13 @@ def render_login():
     if request.method == "POST":
         try:
             # Validate and sanitize email
-            email = validate_string(request.form.get('email').strip().lower(), "Email")
+            email = validate_string(
+                    request.form.get('email').strip().lower(), "Email"
+                    )
             # Validate and sanitize password
-            password = validate_string(request.form.get('password').strip(), "Password")
+            password = validate_string(
+                    request.form.get('password').strip(), "Password"
+                    )
         except ValueError as e:
             flash(str(e), "error")  # Flash error message
             return redirect("/login")
@@ -670,7 +684,9 @@ def add_category():
     if request.method == 'POST':
         try:
             # Validate and sanitize the category name
-            cat_name = validate_string(request.form.get('name').lower().strip(), "Category Name")
+            cat_name = validate_string(
+                    request.form.get('name').lower().strip(), "Category Name"
+                    )
         except ValueError as e:
             flash(str(e), "error")  # Flash error message
             return redirect('/admin')
@@ -737,9 +753,15 @@ def add_word():
     if request.method == 'POST':
         try:  # Flash error message
             # Validate and sanitize inputs
-            maori = validate_string(request.form.get('maori').lower(), "Maori Word")
-            english = validate_string(request.form.get('english').lower(), "English Translation")
-            definition = validate_string(request.form.get('definition'), "Definition")
+            maori = validate_string(
+                    request.form.get('maori').lower(), "Maori Word"
+                    )
+            english = validate_string(
+                    request.form.get('english').lower(), "English Translation"
+                    )
+            definition = validate_string(
+                    request.form.get('definition'), "Definition"
+                    )
             level = validate_integer(request.form.get('level'), "Level")
             cat_id = validate_integer(request.args.get('id'), "Category ID")
         except ValueError as e:
