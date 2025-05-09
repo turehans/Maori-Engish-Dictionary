@@ -649,10 +649,7 @@ def render_admin():
     This function checks if the user has teacher privileges.
     If not, it redirects
     the user to the home page with an appropriate message.
-    If the user is a teacher,
-    it retrieves a list of categories from the database
-    and renders the admin page
-    with the retrieved data.
+    
 
     Returns:
         Response: A redirect to the home page if the user is not a teacher.
@@ -663,18 +660,8 @@ def render_admin():
     if check_if_teacher() is False:
         # Redirect to the home page with a message if the user is not a teacher
         return redirect('/?message=Need+To+Be+Logged+in')
-    # Connect to the database
-    con = create_connection(DATABASE)
-    # SQL query to fetch all categories
-    query = "SELECT * FROM Categories"
-    cur = con.cursor()
-    cur.execute(query)
-    # Fetch all categories from the query result
-    category_list = cur.fetchall()
-    # Close the database connection
-    con.close()
     # Render the admin.html template with the list of categories
-    return render_template("admin.html", categories=category_list)
+    return render_template("admin.html")
 
 
 @app.route('/add_category_to_database/', methods=['POST'])
