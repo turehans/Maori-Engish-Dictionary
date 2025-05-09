@@ -45,16 +45,16 @@ MAX_STRING_LENGTH = 255  # Global variable for maximum string length
 
 # Define a global dictionary for field-specific maximum lengths
 FIELD_MAX_LENGTHS = {
-    "First Name": 30,
-    "Last Name": 30,
-    "Email": 120,
+    "First Name": 20,
+    "Last Name": 20,
+    "Email": 254,
     "Username": 30,
-    "Password": 255,
-    "Password Confirmation": 255,
+    "Password": 71,
+    "Password Confirmation": 71,
     "Maori Word": 30,
     "English Translation": 30,
-    "Definition": 300,
-    "Category Name": 50,
+    "Definition": 255,
+    "Category Name": 30,
     "Table Name": 30,
 }
 
