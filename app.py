@@ -97,6 +97,47 @@ def create_connection(db_file):
     return None
 
 
+def execute_query(query, params=(), fetch_one=False, fetch_all=False):
+    """
+    Executes a SQL query on the database.
+
+    Args:
+        query (str): The SQL query to execute.
+        params (tuple): Parameters to bind to the query (default: ()).
+        fetch_one (bool): Whether to fetch a single result (default: False).
+        fetch_all (bool): Whether to fetch all results (default: False).
+
+    Returns:
+        list or tuple or None: Query results if fetch_one or fetch_all is True,
+        otherwise None.
+
+    Notes:
+        - Ensures the database connection is properly closed after execution.
+        - Logs errors if the query fails.
+    """
+    con = create_connection(DATABASE)
+    if not con:
+        print("Error: Unable to establish a database connection.")
+        return None
+    try:
+        cur = con.cursor()
+        cur.execute(query, params)
+        if fetch_one:
+            result = cur.fetchone()
+        elif fetch_all:
+            result = cur.fetchall()
+        else:
+            con.commit()
+            result = None
+        return result
+    except sqlite3.Error as e:
+        print(f"Database error: {e}")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+    finally:
+        con.close()
+
+
 def is_logged_in():
     """
     Checks if a user is logged in by verifying
@@ -135,38 +176,30 @@ def inject_list():
     for use in rendering templates.
 
     This context processor performs the following:
-    1. Connects to the database and retrieves all
-    categories from the
-       `Categories` table.
+    1. Retrieves all categories from the `Categories`
+    table using `execute_query`.
     2. Checks if the current user is logged in.
     3. Determines if the current user is a teacher.
 
     Returns:
         dict: A dictionary containing:
-            - `categories` (list): A list of categories
-            fetched from the database.
-            - `logged_in` (bool): A flag indicating whether
-            the user is logged in.
-            - `teacher` (bool): A flag indicating whether
-            the user is a teacher.
+            - `categories` (list): A list of categories fetched from the
+            database.
+            - `logged_in` (bool): A flag indicating whether the user
+            is logged in.
+            - `teacher` (bool): A flag indicating whether the user
+            is a teacher.
 
     Notes:
-        - The returned dictionary is available in all
-        Jinja2 templates.
-        - This allows templates to dynamically display
-        content based on the user's
+        - The returned dictionary is available in all Jinja2 templates.
+        - This allows templates to dynamically display content
+        based on the user's
           login status and role.
     """
-    # Connect to the database
-    con = create_connection(DATABASE)
     # SQL query to fetch all categories
     query = "SELECT * FROM Categories"
-    cur = con.cursor()
-    cur.execute(query)
-    # Fetch all rows from the query result
-    category_list = cur.fetchall()
-    # Close the database connection
-    con.close()
+    # Fetch categories using the execute_query function
+    category_list = execute_query(query, fetch_all=True)
     # Check if the current user is a teacher
     is_teacher = check_if_teacher()
 
@@ -263,7 +296,6 @@ def render_dictionary():
     Notes:
         - The `cat_id` parameter is expected to be passed
         as a query string argument.
-        - The database connection is closed after the query execution.
         - The `words_list` contains tuples with the following structure:
           (id, maori, english, definition, level).
     """
@@ -274,20 +306,16 @@ def render_dictionary():
     except ValueError as e:
         flash(str(e), "error")  # Flash error message
         return redirect('/')
-    # Connect to the database
-    con = create_connection(DATABASE)
+
     # SQL query to fetch words by category ID
     query = """
     SELECT id, maori, english, definition, level
     FROM Vocab_List
     WHERE cat_id = ?
     """
-    cur = con.cursor()
-    cur.execute(query, (cat_id,))
-    # Fetch all rows from the query result
-    words_list = cur.fetchall()
-    # Close the database connection
-    con.close()
+    # Fetch words using the execute_query function
+    words_list = execute_query(query, params=(cat_id,), fetch_all=True)
+
     # Render the dictionary.html template with the words and category ID
     return render_template('dictionary.html', words=words_list, cat_id=cat_id)
 
@@ -300,19 +328,10 @@ def render_word():
     This function retrieves the word information from the database, including
     details from the `Vocab_List` table and the author's username from the
     `Users` table. The retrieved data is then passed to the 'word.html'
-    template
-    for rendering.
+    template for rendering.
 
     Returns:
         str: Rendered HTML template for the word details page.
-
-    Notes:
-        - The function establishes a connection to the database using
-          `create_connection`.
-        - The SQL query joins the `Vocab_List` and `Users` tables to
-        fetch the
-          word details along with the author's username.
-        - The database connection is closed after the query execution.
     """
     # Get the word ID from the query parameters and validate it
     word_id = request.args.get('word_id')
@@ -321,8 +340,7 @@ def render_word():
     except ValueError as e:
         flash(str(e), "error")  # Flash error message
         return redirect('/')
-    # Connect to the database
-    con = create_connection(DATABASE)
+
     # SQL query to fetch word details and author information
     query = """
     SELECT Vocab_List.*, Users.username AS author_name
@@ -330,12 +348,9 @@ def render_word():
     JOIN Users ON Vocab_List.author_id = Users.id
     WHERE Vocab_List.id = ?
     """
-    cur = con.cursor()
-    cur.execute(query, (word_id,))
-    # Fetch the first row from the query result
-    word_info_list = cur.fetchone()
-    # Close the database connection
-    con.close()
+    # Fetch word details using the execute_query function
+    word_info_list = execute_query(query, params=(word_id,), fetch_one=True)
+
     # Render the word.html template with the word details and word ID
     return render_template('word.html', word=word_info_list, word_id=word_id)
 
@@ -390,20 +405,14 @@ def modify_word():
             flash(str(e), "error")  # Flash error message
             return redirect(f"/word?word_id={word_id}")
 
-        # Connect to the database
-        con = create_connection(DATABASE)
         # SQL query to update the word details
         query = """
         UPDATE Vocab_List
         SET definition = ?, english = ?, level = ?
         WHERE id = ?
         """
-        cur = con.cursor()
-        cur.execute(query, (definition, english, level, word_id))
-        # Commit the changes to the database
-        con.commit()
-        # Close the database connection
-        con.close()
+        # Execute the update query using the execute_query function
+        execute_query(query, params=(definition, english, level, word_id))
 
     flash("Word modified successfully!", "success")
     # Redirect to the updated word's detail page
@@ -414,7 +423,6 @@ def modify_word():
 def render_signup():
     """
     Handles the signup process for new users.
-
     This function renders the signup page and processes
     user input to create a new account.
     It performs the following tasks:
@@ -438,17 +446,9 @@ def render_signup():
         # If the user is already logged in, redirect them to the home page
         return redirect('/')
 
-    # Connect to the database to fetch roles for the signup form
-    con = create_connection(DATABASE)
-    cur = con.cursor()
-
     # SQL query to fetch all roles
-    query1 = "SELECT * FROM Role"
-    cur.execute(query1)
-    # Fetch all roles from the query result
-    role_list = cur.fetchall()
-    # Close the database connection
-    con.close()
+    query = "SELECT * FROM Role"
+    role_list = execute_query(query, fetch_all=True)
 
     if request.method == 'POST':
         try:
@@ -459,7 +459,9 @@ def render_signup():
             lname = validate_string(
                     request.form.get('lname').title(), "Last Name"
                     )
-            email = validate_string(request.form.get('email').lower(), "Email")
+            email = validate_string(
+                    request.form.get('email').lower(), "Email"
+                    )
             username = validate_string(
                     request.form.get('username'), "Username"
                     )
@@ -469,48 +471,35 @@ def render_signup():
             password2 = validate_string(
                     request.form.get('password2'), "Password Confirmation"
                     )
-            role_id = validate_integer(request.form.get('role'), "Role ID")
+            role_id = validate_integer(
+                    request.form.get('role'), "Role ID"
+                    )
             if password != password2:
                 raise ValueError("Passwords do not match.")
             if len(password) < PASSWORD_MIN_LENGTH:
                 raise ValueError(
-                    f"Password must be over {PASSWORD_MIN_LENGTH} characters."
-                )
+                        f"Password is under {PASSWORD_MIN_LENGTH} characters."
+                        )
         except ValueError as e:
             flash(str(e), "error")  # Flash error message
             return redirect('/signup')
-        # If the request method is POST, process the form data
 
         # Hash the password using bcrypt for secure storage
         hashed_password = bcrypt.generate_password_hash(password)
 
-        # Reconnect to the database to insert the new user
-        con = create_connection(DATABASE)
-        cur = con.cursor()
-
         # SQL query to insert the new user into the Users table
-        query2 = """
+        query = """
         INSERT INTO Users (username, email, password, fname, lname, role_id)
-         VALUES (?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?)
         """
-
         try:
-            # Execute the query with the provided user data
-            cur.execute(
-                query2, (
-                    username, email, hashed_password, fname, lname, role_id
-                )
-            )
+            execute_query(query, params=(
+                username, email, hashed_password, fname, lname, role_id
+                ))
         except sqlite3.IntegrityError:
-            # Handle duplicate email error
-            con.close()
-            flash("Email already in use.", "error")  # Flash error message
+            flash("Email already in use.", "error")
             return redirect("/signup")
 
-        # Commit the changes to the database
-        con.commit()
-        con.close()
-        # Flash success message
         flash("Signup successful! Please log in.", "success")
         return redirect("/login")
 
@@ -522,7 +511,6 @@ def render_signup():
 def render_login():
     """
     Handles the login functionality for the application.
-
     If the user is already logged in, they are redirected to the home page.
     Otherwise, the function processes login requests submitted via POST.
 
@@ -559,60 +547,46 @@ def render_login():
 
     if request.method == "POST":
         try:
-            # Validate and sanitize email
+            # Validate and sanitize inputs
             email = validate_string(
                     request.form.get('email').strip().lower(), "Email"
                     )
-            # Validate and sanitize password
+
+            # Escape the email to prevent SQL injection
             password = validate_string(
                     request.form.get('password').strip(), "Password"
                     )
         except ValueError as e:
-            flash(str(e), "error")  # Flash error message
+            flash(str(e), "error")
             return redirect("/login")
 
         # SQL query to fetch user data based on the provided email
         query = """
-        SELECT id, username, fname, password, role_id FROM
-         Users WHERE email = ?
+        SELECT id, username, fname, password
+         ,role_id FROM Users WHERE email = ?
         """
-        con = create_connection(DATABASE)
-        cur = con.cursor()
-        cur.execute(query, (email,))
-        # Fetch the user data from the query result
-        user_data = cur.fetchone()
-        con.close()
+        user_data = execute_query(query, params=(email,), fetch_one=True)
 
-        try:
-            # Extract user details from the query result
-            user_id = user_data[0]
-            username = user_data[1]
-            first_name = user_data[2]
-            db_password = user_data[3]
-            role_id = user_data[4]
-        except (IndexError, TypeError):
-            # Flash error message
+        if not user_data:
             flash("Invalid username or password.", "error")
             return redirect("/login")
 
-        # Validate the provided password against
-        # the hashed password in the database
+        user_id, username, first_name, db_password, role_id = user_data
+
         if not bcrypt.check_password_hash(db_password, password):
-            # Flash error message
             flash("Invalid username or password.", "error")
             return redirect("/login")
 
-        # Store user details in the session for authentication
+        # Store user details in the session
         session['email'] = email
         session['user_id'] = user_id
         session['first_name'] = first_name
         session['username'] = username
         session['role_id'] = role_id
 
-        flash("Login successful!", "success")  # Flash success message
+        flash("Login successful!", "success")
         return redirect('/')
 
-    # Render the login.html template if the request method is GET
     return render_template('login.html')
 
 
@@ -649,7 +623,7 @@ def render_admin():
     This function checks if the user has teacher privileges.
     If not, it redirects
     the user to the home page with an appropriate message.
-    
+
 
     Returns:
         Response: A redirect to the home page if the user is not a teacher.
@@ -657,10 +631,12 @@ def render_admin():
         if the user is a teacher.
     """
     # Check if the user is a teacher
-    if check_if_teacher() is False:
-        # Redirect to the home page with a message if the user is not a teacher
+    if not check_if_teacher():
+        # Redirect to the home page with a messages
+
+        flash("You need to be a teacher to access this page.", "error")
         return redirect('/?message=Need+To+Be+Logged+in')
-    # Render the admin.html template with the list of categories
+
     return render_template("admin.html")
 
 
@@ -668,7 +644,6 @@ def render_admin():
 def add_category():
     """
     Handles the addition of a new category to the database.
-
     This function checks if the user is logged in as a teacher before allowing
     the addition of a new category. If the user is not logged in as a teacher,
     they are redirected to the home page with an appropriate message. If the
@@ -687,24 +662,16 @@ def add_category():
         try:
             # Validate and sanitize the category name
             cat_name = validate_string(
-                    request.form.get('name').lower().strip(), "Category Name"
-                    )
+                request.form.get('name').lower().strip(), "Category Name"
+            )
         except ValueError as e:
-            flash(str(e), "error")  # Flash error message
+            flash(str(e), "error")
             return redirect('/admin')
 
-        # Connect to the database
-        con = create_connection(DATABASE)
         # SQL query to insert the new category into the Categories table
         query = "INSERT INTO Categories ('name') VALUES (?);"
-        cur = con.cursor()
-        cur.execute(query, (cat_name,))
-        # Commit the changes to the database
-        con.commit()
-        # Close the database connection
-        con.close()
-    flash("Category added successfully!", "success")
-    # Redirect to the admin page after successfully adding the category
+        execute_query(query, params=(cat_name,))
+        flash("Category added successfully!", "success")
     return redirect('/admin')
 
 
@@ -753,51 +720,37 @@ def add_word():
         flash(NEED_TEACHER_MESSAGE, "error")
         return redirect('/?message=Need+To+Be+Logged+in')
     if request.method == 'POST':
-        try:  # Flash error message
+        try:
             # Validate and sanitize inputs
             maori = validate_string(
-                    request.form.get('maori').lower(), "Maori Word"
-                    )
+                request.form.get('maori').lower(), "Maori Word"
+            )
             english = validate_string(
-                    request.form.get('english').lower(), "English Translation"
-                    )
+                request.form.get('english').lower(), "English Translation"
+            )
             definition = validate_string(
-                    request.form.get('definition'), "Definition"
-                    )
+                request.form.get('definition'), "Definition"
+            )
             level = validate_integer(request.form.get('level'), "Level")
             cat_id = validate_integer(request.args.get('id'), "Category ID")
         except ValueError as e:
-            flash(str(e), "error")  # Flash error message
-            # Redirect back to the dictionary page
+            flash(str(e), "error")
             return redirect(f'/dictionary/?cat_id={request.args.get("id")}')
-        # If the request method is POST, process the form data
 
         # Get the current date and format it as a string
-        today = date.today()
-        today = today.strftime("%Y.%m.%d")
-
+        today = date.today().strftime("%Y.%m.%d")
         image = "noimage"  # Default image name
         author_id = session.get("user_id")  # Author ID from session
-        date_of_entry = today  # Date of entry
 
-        # Connect to the database
-        con = create_connection(DATABASE)
         # SQL query to insert the new word into the Vocab_List table
         query = """
         INSERT INTO Vocab_List (maori, english, cat_id, definition,
          date_of_entry, author_id, level, image) VALUES
          (?, ?, ?, ?, ?, ?, ?, ?)
         """
-        cur = con.cursor()
-        cur.execute(query, (maori, english, cat_id, definition,
-                            date_of_entry, author_id, level, image))
-        # Commit the changes to the database
-        con.commit()
-        # Close the database connection
-        con.close()
-
-        flash("Word added successfully!", "success")  # Flash success message
-    # Redirect to the dictionary page for the associated category
+        execute_query(query, params=(maori, english, cat_id, definition,
+                                     today, author_id, level, image))
+        flash("Word added successfully!", "success")
     return redirect(f"/dictionary/?cat_id={cat_id}")
 
 
@@ -820,8 +773,7 @@ def delete_from_category():
                   method is POST.
         Response: A redirect to the admin page for other cases.
     """
-    # Check if the user is a teacher
-    if check_if_teacher() is False:
+    if not check_if_teacher():
         flash("You need to be a teacher to delete items.", "error")
         return redirect('/?message=Need+To+Be+Logged+in')
     if request.method == 'POST':
@@ -830,8 +782,9 @@ def delete_from_category():
             table = validate_string(request.args.get('table'), "Table Name")
             item_id = validate_integer(request.form.get('id'), "ID")
         except ValueError as e:
-            flash(str(e), "error")  # Flash error message
+            flash(str(e), "error")
             return redirect('/admin')
+
         flash("Item deletion confirmed. Proceed to delete.", "success")
         # Render the delete confirmation page with the table name and item ID
         return render_template("delete_confirm.html", id=item_id, table=table)
@@ -867,8 +820,8 @@ def confirm_delete():
           the database.
         - The `DATABASE` constant should point to the database file path.
     """
-    # Check if the user is a teacher
-    if check_if_teacher() is False:
+    # Ensure the user is a teacher
+    if not check_if_teacher():
         flash("You need to be a teacher to confirm deletion.", "error")
         return redirect('/?message=Need+To+Be+Logged+In')
     try:
@@ -879,19 +832,10 @@ def confirm_delete():
         flash(str(e), "error")  # Flash error message
         return redirect('/admin')
 
-    # Connect to the database
-    con = create_connection(DATABASE)
     # SQL query to delete the record from the specified table
     query = f"DELETE FROM {table} WHERE id = ?"
-    cur = con.cursor()
-    # Execute the query with the provided category ID
-    cur.execute(query, (cat_id,))
-    # Commit the changes to the database
-    con.commit()
-    # Close the database connection
-    con.close()
+    execute_query(query, params=(cat_id,))
     flash("Item deleted successfully!", "success")
-    # Redirect to the home page after successful deletion
     return redirect('/')
 
 
