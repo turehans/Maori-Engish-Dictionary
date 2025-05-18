@@ -716,8 +716,8 @@ def add_word():
         - level
         - image (default: "noimage")
     """
-    if not check_if_teacher():
-        flash(NEED_TEACHER_MESSAGE, "error")
+    if not is_logged_in():
+        flash("Need to be logged in", "error")
         return redirect('/?message=Need+To+Be+Logged+in')
     if request.method == 'POST':
         try:
